@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ian Avstreikh</title>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
-
     <link rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/Avstreikh-Yan/Avstreikh-Yan.github.io./refs/heads/main/Logo.svg">
-
+    
     <style>
+        /* Main styles */
         body, html {
             margin: 0;
             height: 100%;
             overflow: hidden;
             background-color: white;
         }
-
+        /* Preloader styles */
         #preloader {
             position: fixed;
             width: 100%;
@@ -28,20 +28,16 @@
             transition: opacity 0.5s ease;
             background-color: white;
         }
-
         #preloader h1 {
             font-family: 'IBM Plex Mono', monospace;
             font-size: 3em;
             margin: 0;
             animation: colorShift 2s infinite;
         }
-
         @keyframes colorShift {
-            0% { color: #000000; }
-            50% { color: #7d7d7d; }
-            100% { color: #000000; }
+            0%,100% { color: #000; }
+            50%     { color: #7d7d7d; }
         }
-
         .loader {
             margin-top: 20px;
             border: 4px solid #f3f3f3;
@@ -51,12 +47,11 @@
             height: 40px;
             animation: spin 1s linear infinite;
         }
-
         @keyframes spin {
-            0% { transform: rotate(0deg); }
+            0%   { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
+        /* iframe is hidden until preloader goes away */
         iframe {
             border: none;
             width: 100vw;
@@ -73,24 +68,28 @@
         <div class="loader"></div>
     </div>
 
-    <!-- Figma iframe -->
+    <!-- Figma iframe; src will be set dynamically -->
     <iframe id="figmaFrame" allowfullscreen></iframe>
 
     <script>
-        const isMobile = window.innerWidth <= 768;
+        // 1. Detect mobile vs desktop by user-agent
+        const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/.test(navigator.userAgent);
 
-        const figmaFrame = document.getElementById('figmaFrame');
-        figmaFrame.src = isMobile 
-            ? "https://embed.figma.com/proto/ipBjZYcD6sDmvHpzJlAKWr/Ian-Avstreikh-s-Portfolio--mobile-?node-id=0-6099&scaling=scale-down-width&content-scaling=fixed&page-id=0%3A1&hide-ui=1"
-            : "https://embed.figma.com/proto/ajRV1Hv7chip2KpPJixAdt/Ian-Avstreikh-s-Portfolio--desktop-?node-id=0-6099&scaling=scale-down-width&content-scaling=fixed&page-id=0%3A1&embed-host=share&hide-ui=1";
+        // 2. Define your two prototype URLs
+        const desktopUrl = 'https://embed.figma.com/proto/ajRV1Hv7chip2KpPJixAdt/Ian-Avstreikh-s-Portfolio--desktop-?node-id=0-6099&scaling=scale-down-width&content-scaling=fixed&page-id=0%3A1&embed-host=share&hide-ui=1';
+        const mobileUrl  = 'https://embed.figma.com/proto/ipBjZYcD6sDmvHpzJlAKWr/Ian-Avstreikh-s-Portfolio--mobile-?node-id=0-6099&scaling=scale-down-width&content-scaling=fixed&page-id=0%3A1&embed-host=share';
 
-        // Hiding preloader and showing iframe
+        // 3. Set the iframe src accordingly
+        const iframe = document.getElementById('figmaFrame');
+        iframe.src = isMobile ? mobileUrl : desktopUrl;
+
+        // 4. Preloader → iframe switch after 6 seconds
         setTimeout(() => {
-            const preloader = document.getElementById('preloader');
-            preloader.style.opacity = '0';
+            const pre = document.getElementById('preloader');
+            pre.style.opacity = '0';
             setTimeout(() => {
-                preloader.style.display = 'none';
-                figmaFrame.style.display = 'block';
+                pre.style.display = 'none';
+                iframe.style.display = 'block';
             }, 500);
         }, 6000);
     </script>
