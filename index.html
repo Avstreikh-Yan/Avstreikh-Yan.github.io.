@@ -7,9 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 
     <link rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/Avstreikh-Yan/Avstreikh-Yan.github.io./refs/heads/main/Logo.svg">
-    
+
     <style>
-        /* Main styles */
         body, html {
             margin: 0;
             height: 100%;
@@ -17,7 +16,6 @@
             background-color: white;
         }
 
-        /* Preloader styles */
         #preloader {
             position: fixed;
             width: 100%;
@@ -31,7 +29,6 @@
             background-color: white;
         }
 
-        /* Name style */
         #preloader h1 {
             font-family: 'IBM Plex Mono', monospace;
             font-size: 3em;
@@ -39,20 +36,12 @@
             animation: colorShift 2s infinite;
         }
 
-        /* Name animation */
         @keyframes colorShift {
-            0% {
-                color: #000000;
-            }
-            50% {
-                color: #7d7d7d;
-            }
-            100% {
-                color: #000000;
-            }
+            0% { color: #000000; }
+            50% { color: #7d7d7d; }
+            100% { color: #000000; }
         }
 
-        /* Spinner */
         .loader {
             margin-top: 20px;
             border: 4px solid #f3f3f3;
@@ -64,15 +53,10 @@
         }
 
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        /* iframe styles */
         iframe {
             border: none;
             width: 100vw;
@@ -90,26 +74,25 @@
     </div>
 
     <!-- Figma iframe -->
-    <iframe id="figmaFrame" 
-            src="https://embed.figma.com/proto/ajRV1Hv7chip2KpPJixAdt/Ian-Avstreikh-s-Portfolio--desktop-?node-id=0-6099&scaling=scale-down-width&content-scaling=fixed&page-id=0%3A1&embed-host=share&hide-ui=1"
-            allowfullscreen>
-    </iframe>
+    <iframe id="figmaFrame" allowfullscreen></iframe>
 
     <script>
-        // Hiding the preloader on the 6th second and displaying iframe after
+        const isMobile = window.innerWidth <= 768;
+
+        const figmaFrame = document.getElementById('figmaFrame');
+        figmaFrame.src = isMobile 
+            ? "https://embed.figma.com/proto/ipBjZYcD6sDmvHpzJlAKWr/Ian-Avstreikh-s-Portfolio--mobile-?node-id=0-6099&scaling=scale-down-width&content-scaling=fixed&page-id=0%3A1&hide-ui=1"
+            : "https://embed.figma.com/proto/ajRV1Hv7chip2KpPJixAdt/Ian-Avstreikh-s-Portfolio--desktop-?node-id=0-6099&scaling=scale-down-width&content-scaling=fixed&page-id=0%3A1&embed-host=share&hide-ui=1";
+
+        // Hiding preloader and showing iframe
         setTimeout(() => {
             const preloader = document.getElementById('preloader');
-            const iframe = document.getElementById('figmaFrame');
-
-            // Smooth preloader disappearance
             preloader.style.opacity = '0';
-
-            // After 500 ms (after the animation) we are removing it from DOM
             setTimeout(() => {
                 preloader.style.display = 'none';
-                iframe.style.display = 'block';
-            }, 500); 
-        }, 6000); // 6-second delay
+                figmaFrame.style.display = 'block';
+            }, 500);
+        }, 6000);
     </script>
 </body>
 </html>
