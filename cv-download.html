@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="0; url=CV.pdf">
+  <title>Downloading CV...</title>
+  <script>
+    window.onload = () => {
+      const a = document.createElement('a');
+      a.href = 'CV.pdf';
+      a.download = 'CV.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+  </script>
+</head>
+<body>
+  <p>If the download doesn’t start automatically, <a href="CV.pdf" download>click here to download</a>.</p>
+</body>
+</html>
