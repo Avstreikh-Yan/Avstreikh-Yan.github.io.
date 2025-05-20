@@ -1,125 +1,320 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ian Avstreikh</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ian Avstreikh</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&display=swap"
+    rel="stylesheet"
+  >
+  <link
+    rel="icon"
+    type="image/svg+xml"
+    href="https://raw.githubusercontent.com/Avstreikh-Yan/Avstreikh-Yan.github.io./refs/heads/main/Logo.svg"
+  >
+  <style>
+    html, body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      background: #E4E5E6;
+      text-align: center;
+      font-family: 'IBM Plex Mono', monospace;
+    }
 
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/Avstreikh-Yan/Avstreikh-Yan.github.io./refs/heads/main/Logo.svg">
-    
-    <style>
-        /* --- Main styles --- */
-        body, html {
-            margin: 0;
-            height: 100%;
-            overflow: hidden;
-            background-color: white;
-        }
+    .wrapper-no7 {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+    }
 
-        /* --- Preloader container --- */
-        #preloader {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;      /* desktop & mobile: center horizontally */
-            justify-content: center;  /* desktop & mobile: center vertically */
-            z-index: 10;
-            transition: opacity 0.5s ease;
-            background-color: white;
-        }
+    .animation-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .animation-wrapper.notvisible {
+      display: none;
+    }
 
-        /* Desktop keeps this exact look; mobile uses same, but also shows the second line */
+    .cat-wrapper {
+      width: 300px;
+    }
+    .cat {
+      width: 80%;
+      overflow: visible;
+    }
 
-        /* Title animation */
-        #preloader h1 {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 3em;
-            margin: 0;
-            animation: colorShift 2s infinite;
-        }
+    .eyes circle {
+      fill: #fff;
+    }
+    .frontlegs, .backlegs {
+      opacity: 1;
+    }
 
-        @keyframes colorShift {
-            0%, 100% { color: #000; }
-            50%      { color: #7d7d7d; }
-        }
+    .logoani {
+      align-self: flex-end;
+      margin-left: -25px;
+      font-size: 45px;
+      animation: colorShift 2s infinite;
+    }
 
-        /* “Rotate your phone…” message (hidden by default) */
-        #rotateMessage {
-            display: none;
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 1em;
-            margin: 15px 0 0;
-            animation: colorShift 2s infinite;
-        }
+    @keyframes colorShift {
+      0%, 100% { color: #000; }
+      50%      { color: #7d7d7d; }
+    }
 
-        /* Show the message if body.mobile */
-        body.mobile #rotateMessage {
-            display: block;
-        }
-
-        /* Spinner */
-        .loader {
-            margin-top: 20px;
-            border: 4px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 4px solid #7d7d7d;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0%   { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Figma iframe hidden until preloader finishes */
-        iframe {
-            border: none;
-            width: 100vw;
-            height: 100vh;
-            display: none;
-        }
-    </style>
+    iframe {
+      display: none;
+      border: none;
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
 </head>
 <body>
-    <!-- Preloader -->
-    <div id="preloader">
-        <h1>Ian Avstreikh</h1>
-        <h2 id="rotateMessage">Rotate your phone for better experience</h2>
-        <div class="loader"></div>
+
+  <div class="wrapper-no7">
+    <div class="animation-wrapper">
+      <div class="cat-wrapper">
+        <svg
+          class="cat"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 207.68 163.77"
+          preserveAspectRatio="none"
+        >
+          <title>cat</title>
+          <g class="body">
+            <circle class="body-backcircle" cx="76.86" cy="83.31" r="45.5"/>
+            <circle class="body-frontcircle" cx="150.86" cy="83.31" r="45.5"/>
+            <rect class="body-between" x="74.65" y="37.89" width="83.04" height="90.61"/>
+          </g>
+          <circle class="head" cx="161.76" cy="52.75" r="45.92"/>
+          <g class="eyes">
+            <circle class="eyes-l" cx="153.51" cy="46.5" r="8.25"/>
+            <circle class="eyes-r" cx="185.76" cy="46.5" r="8.25"/>
+          </g>
+          <g class="ears">
+            <polygon class="ears-l" points="132.76 19 132.76 0 149.55 8.81 132.76 19"/>
+            <polygon class="ears-r" points="179.44 11.2 197 4.06 195.16 22.9 179.44 11.2"/>
+          </g>
+          <rect
+            class="tail"
+            x="-11"
+            y="32.87"
+            width="107"
+            height="20"
+            rx="9.58"
+            ry="9.58"
+            transform="translate(41.19 -18.41) rotate(45)"
+          />
+          <g class="backlegs">
+            <path
+              class="backlegs1"
+              d="M74,124.85a6,6,0,0,0-4.7-7.07l-4.41-.89a6,6,0,0,0-7.07,4.7l-6.31,31.35a8.25,8.25,0,1,0,15.64,5,5.94,5.94,0,0,0,.44-1.33Z"
+              transform="translate(-1.58 -0.92)"
+            />
+            <path
+              class="backlegs2"
+              d="M88.22,125.86a6,6,0,0,0-4.38-7.27l-4.37-1.08a6,6,0,0,0-7.27,4.38l-7.69,31a8.25,8.25,0,1,0,15.41,5.72,5.94,5.94,0,0,0,.5-1.31Z"
+              transform="translate(-1.58 -0.92)"
+            />
+          </g>
+          <g class="frontlegs">
+            <path
+              class="frontlegs1"
+              d="M162.89,120.91a6,6,0,0,0-7.65-3.68L151,118.72a6,6,0,0,0-3.68,7.65l10.57,30.18a8.25,8.25,0,1,0,16-3.65,5.94,5.94,0,0,0-.3-1.37Z"
+              transform="translate(-1.58 -0.92)"
+            />
+            <path
+              class="frontlegs2"
+              d="M175.77,120.08a6,6,0,0,0-7.48-4l-4.31,1.3a6,6,0,0,0-4,7.48l9.22,30.62a8.25,8.25,0,1,0,16.17-2.94,5.94,5.94,0,0,0-.24-1.38Z"
+              transform="translate(-1.58 -0.92)"
+            />
+          </g>
+        </svg>
+      </div>
+      <div class="logoani">Ian Avstreikh</div>
     </div>
+  </div>
 
-    <!-- Figma prototype -->
-    <iframe id="figmaFrame" allowfullscreen></iframe>
+  <iframe
+    id="figmaFrame"
+    allowfullscreen
+  ></iframe>
 
-    <script>
-        // 1. Detect mobile/tablet
-        const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/.test(navigator.userAgent);
-        if (isMobile) {
-            document.body.classList.add('mobile');
-        }
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/TweenMax.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function(){
+      // 1. Device‐based Figma URL
+      const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/
+                         .test(navigator.userAgent);
+      const desktopUrl = "https://embed.figma.com/proto/ajRV1Hv7chip2KpPJixAdt/"
+                       + "Ian-Avstreikh-s-Portfolio--desktop-?"
+                       + "node-id=0-6099&scaling=scale-down-width"
+                       + "&content-scaling=fixed&page-id=0%3A1"
+                       + "&embed-host=share&hide-ui=1";
+      const mobileUrl  = "https://embed.figma.com/proto/ipBjZYcD6sDmvHpzJlAKWr/"
+                       + "Ian-Avstreikh-s-Portfolio--mobile-?"
+                       + "node-id=0-6099&scaling=scale-down-width"
+                       + "&content-scaling=fixed&page-id=0%3A1"
+                       + "&embed-host=share&hide-ui=1";
+      const iframe = document.getElementById("figmaFrame");
+      iframe.src = isMobile ? mobileUrl : desktopUrl;
 
-        // 2. Prototype URLs
-        const desktopUrl = 'https://embed.figma.com/proto/ajRV1Hv7chip2KpPJixAdt/Ian-Avstreikh-s-Portfolio--desktop-?node-id=0-6099&scaling=scale-down-width&content-scaling=fixed&page-id=0%3A1&embed-host=share&hide-ui=1';
-        const mobileUrl  = 'https://embed.figma.com/proto/ipBjZYcD6sDmvHpzJlAKWr/Ian-Avstreikh-s-Portfolio--mobile-?node-id=0-6099&scaling=scale-down-width&content-scaling=fixed&page-id=0%3A1&embed-host=share&hide-ui=1';
+      // 2. Grab all animation parts
+      const cat         = document.querySelector(".cat");
+      const head        = document.querySelector(".head");
+      const eyes        = document.querySelectorAll(".eyes circle");
+      const eyel        = document.querySelectorAll(".eyes-l");
+      const eyer        = document.querySelectorAll(".eyes-r");
+      const ears        = document.querySelectorAll(".ears");
+      const earsl       = document.querySelector(".ears-l");
+      const earsr       = document.querySelector(".ears-r");
+      const tail        = document.querySelector(".tail");
+      const backlegs    = document.querySelector(".backlegs");
+      const frontlegs   = document.querySelector(".frontlegs");
+      const frontlegs1  = document.querySelector(".frontlegs1");
+      const backcircle  = document.querySelector(".body-backcircle");
+      const frontcircle = document.querySelector(".body-frontcircle");
+      const bodybetween = document.querySelector(".body-between");
+      const logoAni     = document.querySelector(".logoani");
+      const wrapper     = document.querySelector(".wrapper-no7");
 
-        // 3. Assign iframe src
-        const iframe = document.getElementById('figmaFrame');
-        iframe.src = isMobile ? mobileUrl : desktopUrl;
+      // 3. Initialize GSAP timeline
+      function initAni(){
+        const tl     = new TimelineMax({ delay:0.5, onComplete: finish });
+        const tl_eye = new TimelineMax({ delay:1.5, repeat:3, repeatDelay:1 });
 
-        // 4. After 6s, fade out preloader and reveal iframe
-        setTimeout(() => {
-            const pre = document.getElementById('preloader');
-            pre.style.opacity = '0';
-            setTimeout(() => {
-                pre.style.display = 'none';
-                iframe.style.display = 'block';
-            }, 500);
-        }, 6000);
-    </script>
+        resetit();
+
+        // blinking
+        tl_eye
+          .to(eyel, 0.1, { scaleY:0.1, y:55 }, "twinkall")
+          .to(eyel, 0.1, { scaleY:1,   y:45 }, "twinkall+=0.1")
+          .to(eyer, 0.1, { scaleY:0.1, y:55 }, "twinkall")
+          .to(eyer, 0.1, { scaleY:1,   y:45 }, "twinkall+=0.1");
+
+        // main push → drop → jump
+        tl
+          .to([head, eyes, ears], 0.2, { y:45, x:30 })
+          .addLabel("twink")
+          .to(eyel, 0.1, { scaleY:1,  y:45 }, "twink-=0.1")
+          .to(eyel, 0.1, { scaleY:0.1,y:55 }, "twink")
+          .to(eyel, 0.1, { scaleY:1,  y:45 }, "twink+=0.1")
+          .to(eyer, 0.1, { scaleY:0.1,y:55 }, "twink")
+          .to(eyer, 0.1, { scaleY:1,  y:45 }, "twink+=0.1")
+          .to(earsl, 0.1, { y:8,  x:-5, rotation:-20 }, "twink+=0.1")
+          .to(earsr, 0.1, { y:16, x:-15,rotation:-60 }, "twink+=0.1")
+          .set(frontlegs, { opacity:1 }, "+=0.5")
+
+          .to(frontlegs1, 0.1, { y:35, x:15, rotation:-60 })
+          .to(logoAni,    0.1, { x:5 })
+          .to(frontlegs1, 0.1, { y:35, x:5,  rotation:-60 })
+          .to(frontlegs1, 0.1, { y:35, x:15, rotation:-60 })
+          .to(logoAni,    0.3, { x:10 })
+          .to(frontlegs1, 0.1, { y:35, x:-5, rotation:-60 })
+          .to(frontlegs1, 0.1, { y:35, x:25, rotation:-60 }, "+=0.5")
+          .to(logoAni,    0.1, { x:12 })
+          .to(frontlegs1, 0.1, { y:35, x:5,  rotation:-60 })
+          .to(frontlegs1, 0.1, { y:35, x:25, rotation:-60 })
+          .to(logoAni,    0.3, { x:17 })
+          .to(frontlegs1, 0.1, { y:35, x:-5, rotation:-60 })
+          .to(frontlegs1, 0.1, { y:35, x:35, rotation:-60 })
+          .to(logoAni,    0.1, { x:20 })
+          .to(frontlegs1, 0.1, { y:35, x:-5, rotation:-60 })
+          .to(frontlegs1, 0.1, { y:30, x:30, rotation:-60, scaleY:1.2 })
+          .to(logoAni,    0.5, { x:30 })
+          .to(logoAni,    0.1, { rotation:10 })
+          .to(frontlegs1, 0.1, { y:35, x:-15, rotation:-60, scaleY:1 })
+
+          .addLabel("wiggle")
+          .to([head, eyes, ears], 0.1, { y:48 }, "wiggle")
+          .to(earsl, 0.1, { y:10, x:-5, rotation:-20 }, "wiggle")
+          .to(earsr, 0.1, { y:18, x:-15,rotation:-60 }, "wiggle")
+          .to(backcircle, 0.1, { y:30, x:40 }, "wiggle=-0.2")
+          .to(backcircle, 0.1, { y:30, x:37 }, "wiggle=-0.1")
+          .to(backcircle, 0.1, { y:35, x:40 }, "wiggle")
+          .to(backcircle, 0.1, { y:30, x:40 })
+          .to(backcircle, 0.1, { y:30, x:37 })
+          .to(backcircle, 0.1, { y:35, x:40 })
+          .to(backcircle, 0.1, { y:30, x:40 })
+          .to(backcircle, 0.1, { y:30, x:37 })
+          .to(backcircle, 0.1, { y:35, x:40 })
+
+          .addLabel("logowiggle")
+          .to(frontlegs1, 0.1, { y:35, x:30, rotation:-60, scaleY:1.25 }, "logowiggle-=0.1")
+          .to(logoAni,    0.1, { rotation:60, x:70 }, "logowiggle")
+          .to(logoAni,    0.5, { y:50 }, "logowiggle+=0.1")
+          .to(logoAni,    0.1, { rotation:120 }, "logowiggle+=0.1")
+          .to(logoAni,    0.1, { rotation:270 }, "logowiggle+=0.2")
+          .to(logoAni,    0.5, { y:550, x:90 }, "logowiggle+=0.2")
+          .to(logoAni,    0.5, { opacity:0 }, "logowiggle")
+
+          .to([head, eyes, ears, frontcircle], 0.1, { x:75, y:5 }, "jump+=0.2")
+          .to(frontcircle, 0.1, { x:55, y:5 }, "jump+=0.2")
+          .to(bodybetween, 0.1, { scaleX:1, x:45, y:25, rotation:-15 }, "jump+=0.2")
+          .to(backcircle,  0.1, { x:50, y:25 }, "jump+=0.2")
+          .to(backlegs,    0.1, { x:70 }, "jump+=0.2")
+
+          .to(frontlegs,   0.1, { x:250, y:5, rotation:-45 }, "jump+=0.3")
+          .to(frontcircle, 0.1, { x:250 }, "jump+=0.3")
+          .to(backcircle,  0.1, { x:250, y:0 }, "jump+=0.3")
+          .to(bodybetween, 0.1, { x:255, y:0, scaleX:1, rotation:4 }, "jump+=0.3")
+          .to([head, eyes, ears], 0.1, { x:275 }, "jump+=0.3")
+          .to(tail,        0.1, { x:230, y:25, rotation:15 }, "jump+=0.3")
+          .to(backlegs,    0.1, { x:250, y:-25, rotation:45 }, "jump+=0.3")
+
+          .to(frontlegs,   0.1, { x:340, y:105, rotation:-15 }, "jump+=0.4")
+          .to(frontcircle, 0.1, { x:340, y:105 }, "jump+=0.4")
+          .to(backcircle,  0.1, { x:350, y:60 }, "jump+=0.4")
+          .to(bodybetween, 0.1, { x:380, y:70, scaleX:1, rotation:35 }, "jump+=0.4")
+          .to([head, eyes, ears], 0.1, { x:385, y:125 }, "jump+=0.4")
+          .to(tail,        0.1, { x:370, y:50, rotation:35 }, "jump+=0.4")
+          .to(backlegs,    0.1, { x:350, y:5, rotation:95 }, "jump+=0.4")
+
+          .to(frontlegs,   0.1, { x:420, y:205, rotation:-15 }, "jump+=0.5")
+          .to(frontcircle, 0.1, { x:420, y:205 }, "jump+=0.5")
+          .to(backcircle,  0.1, { x:430, y:160 }, "jump+=0.5")
+          .to(bodybetween, 0.1, { x:460, y:170, scaleX:1, rotation:35 }, "jump+=0.5")
+          .to([head, eyes, ears], 0.1, { x:465, y:225 }, "jump+=0.5")
+          .to(tail,        0.1, { x:450, y:150, rotation:35 }, "jump+=0.5")
+          .to(backlegs,    0.1, { x:430, y:95,  rotation:95 }, "jump+=0.5")
+
+          .to(cat, 0.5, { opacity:0 }, "jump+=0.3");
+      }
+
+      // hide preloader, show Figma embed
+      function finish(){
+        wrapper.style.display = "none";
+        iframe.style.display  = "block";
+      }
+
+      // reset all positions
+      function resetit(){
+        TweenMax.set([head, eyes, ears], { y:20, x:30 });
+        TweenMax.set(backcircle,    { y:35, x:40 });
+        TweenMax.set(cat,           { opacity:1 });
+        TweenMax.set(bodybetween,   { scaleX:0.5, y:35, x:45, rotation:0 });
+        TweenMax.set(frontcircle,   { y:35, x:10 });
+        TweenMax.set(eyel,          { scaleY:1 });
+        TweenMax.set(eyer,          { scaleY:1 });
+        TweenMax.set(ears,          { y:20 });
+        TweenMax.set(tail,          { y:110, x:30, rotation:0 });
+        TweenMax.set(backlegs,      { rotation:-100, y:55, x:50 });
+        TweenMax.set(frontlegs,     { y:0, x:0, rotation:0 });
+        TweenMax.set(logoAni,       { opacity:1, x:0, y:0, rotation:0 });
+        TweenMax.set(earsl,         { x:0, y:0, rotation:0 });
+        TweenMax.set(earsr,         { x:0, y:0, rotation:0 });
+      }
+
+      // start it up
+      initAni();
+    });
+  </script>
+
 </body>
 </html>
