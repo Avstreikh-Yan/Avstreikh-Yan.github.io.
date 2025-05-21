@@ -40,14 +40,6 @@
     }
   </style>
   <script>
-    window.onload = () => {
-      const a = document.createElement('a');
-      a.href = 'https://ianavstreikh.pro/CV-for-ATS.docx';
-      a.download = 'CV-for-ATS.docx';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    };
     function manualDownload() {
       const a = document.createElement('a');
       a.href = 'https://ianavstreikh.pro/CV-for-ATS.docx';
@@ -60,7 +52,7 @@
 </head>
 <body>
   <div class="download-bar">
-    <span>This document is being displayed below. You can also download it manually:</span>
+    <span>CV version in an easy-to-digest format for machines. Click the orange button to download it:</span>
     <button onclick="manualDownload()">Download CV (DOCX)</button>
   </div>
   <iframe class="frame-container" src="https://view.officeapps.live.com/op/embed.aspx?src=https://ianavstreikh.pro/CV-for-ATS.docx" frameborder="0"></iframe>
