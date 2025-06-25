@@ -1708,6 +1708,210 @@ Make it visually empty but present */
       }
       // Initialize on load
       initAddRowDropdowns();
+
+      // --- ICS IMPORT (Drag & Drop) ---
+      (function() {
+        // Create overlay for drag feedback
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.top = 0;
+        overlay.style.left = 0;
+        overlay.style.right = 0;
+        overlay.style.bottom = 0;
+        overlay.style.background = 'rgba(41, 98, 255, 0.10)';
+        overlay.style.zIndex = 99999;
+        overlay.style.display = 'none';
+        overlay.style.pointerEvents = 'none';
+        overlay.style.transition = 'background 0.2s';
+        overlay.innerHTML = '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2rem;color:#1976d2;font-family:inherit;text-align:center;">Drop your .ics file here</div>';
+        document.body.appendChild(overlay);
+
+        let dragCounter = 0;
+        window.addEventListener('dragenter', e => {
+          dragCounter++;
+          overlay.style.display = 'block';
+        });
+        window.addEventListener('dragleave', e => {
+          dragCounter--;
+          if (dragCounter <= 0) {
+            overlay.style.display = 'none';
+            dragCounter = 0;
+          }
+        });
+        window.addEventListener('dragover', e => {
+          e.preventDefault();
+        });
+        window.addEventListener('drop', e => {
+          e.preventDefault();
+          overlay.style.display = 'none';
+          dragCounter = 0;
+          if (!e.dataTransfer.files || !e.dataTransfer.files.length) return;
+          for (const file of e.dataTransfer.files) {
+            if (!file.name.endsWith('.ics')) {
+              showIcsError('Only .ics files exported from this planner are supported.');
+              continue;
+            }
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+              try {
+                importIcs(ev.target.result);
+              } catch (err) {
+                showIcsError('Failed to import. Only .ics files exported from this planner are supported.');
+              }
+            };
+            reader.readAsText(file);
+          }
+        });
+
+        function showIcsError(msg) {
+          const err = document.createElement('div');
+          err.textContent = msg;
+          err.style.position = 'fixed';
+          err.style.top = '2rem';
+          err.style.left = '50%';
+          err.style.transform = 'translateX(-50%)';
+          err.style.background = '#c00';
+          err.style.color = '#fff';
+          err.style.padding = '1em 2em';
+          err.style.borderRadius = '10px';
+          err.style.fontWeight = 'bold';
+          err.style.zIndex = 100000;
+          document.body.appendChild(err);
+          setTimeout(() => err.remove(), 3500);
+        }
+
+        function importIcs(text) {
+          // Parse ICS
+          const events = [];
+          let cur = null;
+          let calendarTitle = '';
+          let calendarDate = '';
+          let lines = text.split(/\r?\n/);
+          for (let i = 0; i < lines.length; ++i) {
+            let line = lines[i].trim();
+            if (line === 'BEGIN:VEVENT') {
+              cur = {};
+            } else if (line === 'END:VEVENT') {
+              if (cur) events.push(cur);
+              cur = null;
+            } else if (cur) {
+              let idx = line.indexOf(':');
+              if (idx > 0) {
+                let key = line.slice(0, idx);
+                let val = line.slice(idx + 1);
+                cur[key] = val;
+              }
+            } else if (line.startsWith('DESCRIPTION:')) {
+              calendarTitle = line.slice('DESCRIPTION:'.length);
+            }
+          }
+          if (!events.length) throw new Error('No events');
+          // Group by DTSTART date
+          const byDate = {};
+          for (const ev of events) {
+            if (!ev.DTSTART) continue;
+            // YYYYMMDDTHHMMSS
+            const date = ev.DTSTART.slice(0,8);
+            if (!byDate[date]) byDate[date] = [];
+            byDate[date].push(ev);
+          }
+          for (const date in byDate) {
+            const dayEvents = byDate[date];
+            // Try to get title from DESCRIPTION or SUMMARY
+            let title = calendarTitle;
+            if (!title && dayEvents[0] && dayEvents[0].DESCRIPTION) title = dayEvents[0].DESCRIPTION;
+            // Format date for header
+            let d = date;
+            if (d.length === 8) {
+              const yyyy = d.slice(0,4), mm = d.slice(4,6), dd = d.slice(6,8);
+              const jsDate = new Date(`${yyyy}-${mm}-${dd}`);
+              const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+              title = `${dd}/${mm} ${days[jsDate.getDay()]}`;
+            }
+            // Create header
+            const header = document.createElement('div');
+            header.id = 'header';
+            header.setAttribute('contenteditable', 'true');
+            header.setAttribute('data-placeholder', 'Day');
+            header.textContent = title;
+            // Create table
+            const wrapper = document.createElement('div');
+            wrapper.className = 'table-wrapper';
+            const table = document.createElement('table');
+            table.innerHTML = `<colgroup>
+              <col class="handle-col">
+              <col class="task-col">
+              <col class="interval-col">
+              <col class="duration-col">
+              <col class="delete-col">
+            </colgroup>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Task</th>
+                <th class="interval-col">SCHEDULE</th>
+                <th class="duration-col">DURATION</th>
+                <th class="delete-col"></th>
+              </tr>
+            </thead>
+            <tbody></tbody>`;
+            const tbody = table.querySelector('tbody');
+            for (const ev of dayEvents) {
+              // Parse times
+              let sh = '--', sm = '--', eh = '--', em = '--', dur = '';
+              if (ev.DTSTART && ev.DTEND) {
+                sh = ev.DTSTART.slice(9,11);
+                sm = ev.DTSTART.slice(11,13);
+                eh = ev.DTEND.slice(9,11);
+                em = ev.DTEND.slice(11,13);
+                // Duration in minutes
+                const mins = (parseInt(eh,10)*60+parseInt(em,10))-(parseInt(sh,10)*60+parseInt(sm,10));
+                dur = mins > 0 ? mins : '';
+              }
+              const tr = document.createElement('tr');
+              tr.setAttribute('draggable','true');
+              tr.innerHTML = `
+                <td class="handle-col">≡</td>
+                <td class="task-col" contenteditable="true">${ev.SUMMARY||''}</td>
+                <td class="interval-col">
+                  <input type="checkbox" class="lock-schedule-cb" title="Fix time">
+                  <input type="text" class="start-hh" maxlength="2" size="2" placeholder="hh" value="${sh}">:<input type="text" class="start-mm" maxlength="2" size="2" placeholder="mm" value="${sm}">
+                  – <span class="auto-end-time">${eh}:${em}</span>
+                  <div class="custom-time-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;"></div>
+                </td>
+                <td class="duration-col"><input type="number" class="duration" min="0" step="10" placeholder="min" value="${dur}"><div class="custom-duration-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;"></div></td>
+                <td class="delete-col"><button class="row-delete-btn" title="Delete row">🗑️</button></td>
+              `;
+              tbody.appendChild(tr);
+            }
+            wrapper.appendChild(table);
+            // Add table buttons
+            const btns = document.createElement('div');
+            btns.className = 'table-buttons';
+            btns.innerHTML = `<div class="add-row-group">
+              <button class="add-row-btn" title="Add row">➕</button>
+              <div class="add-row-dropdown">
+                <button data-rows="2">+ 2 rows</button>
+                <button data-rows="3">+ 3 rows</button>
+                <button data-rows="4">+ 4 rows</button>
+              </div>
+            </div>
+            <button class="remove-table-btn" title="Delete table" style="background:#c00;">🗒️</button>
+            <button class="add-table-btn" title="Add table">🗒️</button>
+            <button class="export-ics-btn" title="Export to Calendar" style="background:#1976d2; color:#fff;">📅</button>
+            <button class="doc-btn" title="Copy as text" style="background:#1976d2; color:#fff;">📄</button>`;
+            wrapper.appendChild(btns);
+            // Insert into planner
+            container.appendChild(header);
+            container.appendChild(wrapper);
+            // Re-init logic
+            initTable(table);
+            enableRowDeleteDelegation();
+            initDragAndDrop();
+            initAddRowDropdowns();
+          }
+        }
+      })();
     });
   </script>
 </body>
