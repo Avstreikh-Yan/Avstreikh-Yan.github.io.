@@ -71,7 +71,7 @@
       top: 0;
       left: 0;
       bottom: 0;
-      right: 2.9rem; /* Ширина колонки удаления */
+      right: 2.9rem; /* Delete column width */
       background: #fff;
       border-radius: 18px;
       box-shadow: 0 2px 16px #1a2b6c0d;
@@ -599,9 +599,77 @@ Make it visually empty but present */
       background: #2B5B97 !important;
       color: #fff !important;
     }
+
+    /* Info Panel Styles */
+    #info-btn {
+      position: fixed;
+      top: 2rem;
+      left: 2rem;
+      z-index: 1001;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 1px solid #1A2B6C;
+      background: #fff;
+      color: #1A2B6C;
+      font-size: 0.8rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-bottom: 1px;
+    }
+    #info-panel {
+      display: none;
+      background: #f5f7fa;
+      border: 1px solid #e5e8f0;
+      border-radius: 18px;
+      padding: 2rem;
+      margin: 2.5rem 2rem 0 2rem;
+      position: relative;
+    }
+    #close-info-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      background: none;
+      border: none;
+      font-size: 1.8rem;
+      cursor: pointer;
+      color: #888;
+    }
+    #close-info-btn:hover {
+      color: #333;
+    }
+    #info-panel h3 {
+      margin-top: 0;
+      color: #1A2B6C;
+    }
+    #info-panel ul, #info-panel ol {
+      padding-left: 20px;
+    }
+    #info-panel li {
+      margin-bottom: 0.5em;
+    }
   </style>
 </head>
 <body>
+<button id="info-btn">i</button>
+<script>
+  if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
+    document.body.innerHTML = `
+      <div style="background-color: black; color: white; font-family: sans-serif; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; padding: 1rem;">
+        <div>
+          <p style="margin: 0.5em 0; font-size: 1.2rem;">Oops, the planner is not available on mobile devices :(</p>
+          <p style="margin: 0.5em 0; font-size: 1.2rem;">Waiting for you on a desktop!</p>
+          <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExdWE5Mmp4bHEzdXZuMzFzcmFrbTg3ZDM4c3lkZWZqMGVhempycjRjbCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/VpysUTI25mTlK/giphy.gif" alt="Waiting..." style="max-width: 100%; margin-top: 20px;">
+        </div>
+      </div>
+    `;
+    document.body.style.backgroundColor = 'black';
+  }
+</script>
 
   <div class="planner-container">
     <div id="header" contenteditable="true" data-placeholder="Day"></div>
@@ -633,7 +701,7 @@ Make it visually empty but present */
               <input type="text" class="start-hh" maxlength="2" size="2" placeholder="hh">:<input type="text" class="start-mm" maxlength="2" size="2" placeholder="mm">
               – <span class="auto-end-time">--:--</span>
               <div class="custom-time-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;">
-                <!-- picker content будет добавляться динамически -->
+                <!-- picker content will be added dynamically -->
               </div>
             </td>
             <td class="duration-col"><input type="number" class="duration" min="0" step="10" placeholder="min"><div class="custom-duration-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;"></div></td>
@@ -649,7 +717,7 @@ Make it visually empty but present */
               <input type="text" class="start-hh" maxlength="2" size="2" placeholder="hh">:<input type="text" class="start-mm" maxlength="2" size="2" placeholder="mm">
               – <span class="auto-end-time">--:--</span>
               <div class="custom-time-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;">
-                <!-- picker content будет добавляться динамически -->
+                <!-- picker content will be added dynamically -->
               </div>
             </td>
             <td class="duration-col"><input type="number" class="duration" min="0" step="10" placeholder="min"><div class="custom-duration-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;"></div></td>
@@ -665,12 +733,12 @@ Make it visually empty but present */
               <input type="text" class="start-hh" maxlength="2" size="2" placeholder="hh">:<input type="text" class="start-mm" maxlength="2" size="2" placeholder="mm">
               – <span class="auto-end-time">--:--</span>
               <div class="custom-time-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;">
-                <!-- picker content будет добавляться динамически -->
+                <!-- picker content will be added dynamically -->
               </div>
             </td>
             <td class="duration-col"><input type="number" class="duration" min="0" step="10" placeholder="min"><div class="custom-duration-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;"></div></td>
             <td class="delete-col">
-              <button class="row-delete-btn" title="Удалить строку">🗑️</button>
+              <button class="row-delete-btn" title="Delete row">🗑️</button>
             </td>
           </tr>
           <tr draggable="true">
@@ -681,12 +749,12 @@ Make it visually empty but present */
               <input type="text" class="start-hh" maxlength="2" size="2" placeholder="hh">:<input type="text" class="start-mm" maxlength="2" size="2" placeholder="mm">
               – <span class="auto-end-time">--:--</span>
               <div class="custom-time-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;">
-                <!-- picker content будет добавляться динамически -->
+                <!-- picker content will be added dynamically -->
               </div>
             </td>
             <td class="duration-col"><input type="number" class="duration" min="0" step="10" placeholder="min"><div class="custom-duration-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;"></div></td>
             <td class="delete-col">
-              <button class="row-delete-btn" title="Удалить строку">🗑️</button>
+              <button class="row-delete-btn" title="Delete row">🗑️</button>
             </td>
           </tr>
         </tbody>
@@ -699,13 +767,53 @@ Make it visually empty but present */
             <button data-rows="2">+ 2 rows</button>
             <button data-rows="3">+ 3 rows</button>
             <button data-rows="4">+ 4 rows</button>
-          </div>
-        </div>
+      </div>
+    </div>
         <button class="add-table-btn" title="Add table">🗒️</button>
         <button class="export-ics-btn" title="Export to Calendar" style="background:#1976d2; color:#fff;">📅</button>
         <button class="doc-btn" title="Copy as text" style="background:#1976d2; color:#fff;">📄</button>
       </div>
     </div>
+  </div>
+
+  <div id="info-panel">
+    <button id="close-info-btn" title="Close">&times;</button>
+    <h3>🚀 Get Started</h3>
+    <ul>
+      <li>Add task descriptions in <b>TASK</b>.</li>
+      <li>Set the estimated time in <b>DURATION</b>.</li>
+      <li>Fill in the top row of <b>SCHEDULE</b> — the planner auto-generates your schedule.</li>
+    </ul>
+
+    <h3>⚙️ Adjust Your Schedule</h3>
+    <ul>
+      <li>Change the first <b>SCHEDULE</b> cell to set a new starting time.</li>
+      <li>Drag rows to reorder or move tasks between tables.</li>
+      <li>Update <b>DURATION</b> — your schedule updates instantly.</li>
+      <li>Lock fixed-time tasks (e.g. meetings) with the <b>🔒 checkbox</b> — their <b>SCHEDULE</b> won't be changed.</li>
+    </ul>
+
+    <h3>🟢 Buttons Explained</h3>
+    <ul>
+      <li><b>➕</b> — Add a row</li>
+      <li><b>🗑️</b> — Delete the row (hover a row to see it)</li>
+      <li><b>🗒️</b> — Add a new table</li>
+      <li><b>📅</b> — Export as a .ics file (open it to add your schedule to Apple Calendar)</li>
+      <li><b>📄</b> — Copy as text (paste into Notion or docs)</li>
+    </ul>
+
+    <h3>💾 Save & Resume Later</h3>
+    <ol>
+      <li>Export with <b>📅</b>.</li>
+      <li>To restore, drag the downloaded .ics file onto the page — your table will reappear.</li>
+    </ol>
+
+    <h3>ℹ️ Notes</h3>
+    <ul>
+      <li>Green line "time gap" = free slot. Pops up and disappears automatically based on your schedule.</li>
+      <li>Red <b>SCHEDULE</b> cells = overlapping tasks</li>
+      <li>Mobile not supported — the planner is available only on desktop</li>
+    </ul>
   </div>
 
   <script>
@@ -721,6 +829,29 @@ Make it visually empty but present */
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      // Info Panel Logic
+      const infoBtn = document.getElementById('info-btn');
+      const infoPanel = document.getElementById('info-panel');
+      const closeInfoBtn = document.getElementById('close-info-btn');
+      const plannerContainer = document.querySelector('.planner-container');
+
+      if (infoBtn && infoPanel && closeInfoBtn && plannerContainer) {
+        // Move info panel to the end of the container
+        plannerContainer.appendChild(infoPanel);
+
+        infoBtn.addEventListener('click', () => {
+          if (infoPanel.style.display === 'block') {
+            infoPanel.style.display = 'none';
+          } else {
+            infoPanel.style.display = 'block';
+          }
+        });
+
+        closeInfoBtn.addEventListener('click', () => {
+          infoPanel.style.display = 'none';
+        });
+      }
+
       // Automatically fill the Day header with date and day of week
       const header = document.getElementById('header');
       if (header && (!header.textContent || header.textContent.trim() === '')) {
@@ -939,7 +1070,7 @@ Make it visually empty but present */
           if (btns && !btns.querySelector('.remove-table-btn')) {
             const removeBtn = document.createElement('button');
             removeBtn.className = 'remove-table-btn';
-            removeBtn.title = 'Удалить таблицу';
+            removeBtn.title = 'Delete table';
             removeBtn.style.background = '#c00';
             removeBtn.textContent = '🗒️';
             btns.insertBefore(removeBtn, btns.querySelector('.export-ics-btn'));
