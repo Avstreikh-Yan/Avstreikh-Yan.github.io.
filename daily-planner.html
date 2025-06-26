@@ -627,7 +627,7 @@ Make it visually empty but present */
       border-radius: 18px;
       padding: 2rem;
       margin: 2.5rem 2rem 0 2rem;
-      position: relative;
+      position: absolute;
     }
     #close-info-btn {
       position: absolute;
@@ -778,6 +778,7 @@ Make it visually empty but present */
 
   <div id="info-panel">
     <button id="close-info-btn" title="Close">&times;</button>
+    <p>Important: everything you do with this planner is processed locally on your computer. If you refresh the page, everything will be lost. Export your progress using the 📅 or 📄 buttons.</p>
     <h3>🚀 Get Started</h3>
     <ul>
       <li>Add task descriptions in <b>TASK</b>.</li>
@@ -804,6 +805,7 @@ Make it visually empty but present */
 
     <h3>💾 Save & Resume Later</h3>
     <ol>
+      <li>(Crucial!) fill out the <b>TASK</b> and <b>DURATION</b> columns and the first raw of <b>SCHEDULE</b>.
       <li>Export with <b>📅</b>.</li>
       <li>To restore, drag the downloaded .ics file onto the page — your table will reappear.</li>
     </ol>
@@ -921,7 +923,7 @@ Make it visually empty but present */
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = 'schedule.ics';
+          a.download = (title.replace(/[\\/:*?"<>|]/g, '_') || 'schedule') + '.ics';
           document.body.appendChild(a);
           a.click();
           setTimeout(() => {
