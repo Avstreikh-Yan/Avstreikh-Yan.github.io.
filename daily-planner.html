@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Daily Planner</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'><text y='60' font-size='60'>📅</text></svg>">
   <style>
     @import url('https://fonts.googleapis.com/css?family=IBM+Plex+Sans:400,700&display=swap');
     body {
@@ -14,19 +15,76 @@
       color: #1A1A1A;
       letter-spacing: 0.01em;
     }
-    #header {
+    .header-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 2.2rem;
+      position: relative;
+    }
+    .block-arrows {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1em;
+      margin-right: 0.7rem;
+      user-select: none;
+    }
+    .block-arrow-btn {
+      background: none;
+      border: none;
+      color: #1A2B6C;
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 0.1em 0.2em;
+      border-radius: 4px;
+      transition: background 0.15s, color 0.15s;
+      line-height: 1;
+      outline: none;
+    }
+    .block-arrow-btn:disabled {
+      color: #b0b8c9;
+      cursor: default;
+      background: none;
+    }
+    .block-arrow-btn:not(:disabled):hover {
+      background: #e3e6f7;
+      color: #1976d2;
+    }
+    .header-title {
       font-family: 'IBM Plex Sans', Arial, sans-serif;
       font-size: 2.3rem;
       font-weight: 700;
-      margin-bottom: 2.2rem;
       cursor: text;
       letter-spacing: 0.01em;
       color: #1A1A1A;
       line-height: 1.2;
+      flex-basis: 70%;
+      max-width: 70%;
+      flex-shrink: 1;
+      flex-grow: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-    #header[contenteditable]:empty:before {
+    .header-title[contenteditable]:empty:before {
       content: attr(data-placeholder);
       color: #aaa;
+    }
+    .header-date {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.95rem;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      padding: 0.2em 0.4em;
+      background-color: #eef1fa;
+      color: #1A2B6C;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: absolute;
+      right: 2.9rem;
+    }
+    .header-date:hover {
+      background-color: #dbe0f0;
     }
     .planner-container {
       max-width: 900px;
@@ -628,6 +686,28 @@ Make it visually empty but present */
       padding: 2rem;
       margin: 0rem 4.5rem 2.5rem 2rem;
       position: relative;
+      font-size: 0.97em;
+    }
+    #info-panel > * {
+      margin-top: 1.3em;
+      margin-bottom: 1.3em;
+    }
+    #info-panel h3 {
+      font-size: 1.08em;
+      color: #1A2B6C;
+      margin-bottom: 0.5em;
+    }
+    #info-panel li, #info-panel p, #info-panel ul, #info-panel ol {
+      font-size: 0.97em;
+    }
+    #info-panel ul, #info-panel ol {
+      margin-top: 0.2em;
+      margin-bottom: 0.7em;
+      padding-left: 1.5em;
+    }
+    #info-panel li {
+      margin-bottom: 0.35em;
+      margin-top: 0.15em;
     }
     #close-info-btn {
       position: absolute;
@@ -642,20 +722,22 @@ Make it visually empty but present */
     #close-info-btn:hover {
       color: #333;
     }
-    #info-panel h3 {
-      margin-top: 0;
-      color: #1A2B6C;
+    .schedule-block.dragging {
+      opacity: 0.4;
     }
-    #info-panel ul, #info-panel ol {
-      padding-left: 20px;
-    }
-    #info-panel li {
-      margin-bottom: 0.5em;
+    .block-placeholder {
+      border: 2px dashed #a0b3f0;
+      border-radius: 18px;
+      background: #f0f3ff;
+      min-height: 10rem;
+      margin-bottom: 2.5rem;
     }
   </style>
 </head>
 <body>
-<button id="info-btn">i</button>
+<button id="info-btn" title="How to use">i</button>
+<button id="export-all-btn" title="Export all" style="position:fixed;top:3.7rem;left:2rem;z-index:1001;width:20px;height:20px;border-radius:50%;border:1px solid #1A2B6C;background:#fff;color:#1A2B6C;font-size:0.53rem;font-weight:bold;display:flex;align-items:center;justify-content:center;padding-bottom:1px;cursor:pointer;">📅</button>
+<button id="copy-all-btn" title="Copy all as text" style="position:fixed;top:5.4rem;left:2rem;z-index:1001;width:20px;height:20px;border-radius:50%;border:1px solid #1A2B6C;background:#fff;color:#1A2B6C;font-size:0.53rem;font-weight:bold;display:flex;align-items:center;justify-content:center;padding-bottom:1px;cursor:pointer;">📄</button>
 <script>
   if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
     document.body.innerHTML = `
@@ -668,121 +750,131 @@ Make it visually empty but present */
       </div>
     `;
     document.body.style.backgroundColor = 'black';
+    return;
   }
 </script>
 
   <div class="planner-container">
-    <div id="header" contenteditable="true" data-placeholder="Day"></div>
-
-    <div class="table-wrapper">
-      <table>
-        <colgroup>
-          <col class="handle-col">
-          <col class="task-col">
-          <col class="interval-col">
-          <col class="duration-col">
-          <col class="delete-col">
-        </colgroup>
-        <thead>
-          <tr>
-            <th></th>
-            <th>Task</th>
-            <th class="interval-col">SCHEDULE</th>
-            <th class="duration-col">DURATION</th>
-            <th class="delete-col"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr draggable="true">
-            <td class="handle-col">≡</td>
-            <td class="task-col" contenteditable="true"></td>
-            <td class="interval-col">
-              <input type="checkbox" class="lock-schedule-cb" title="Fix time">
-              <input type="text" class="start-hh" maxlength="2" size="2" placeholder="hh">:<input type="text" class="start-mm" maxlength="2" size="2" placeholder="mm">
-              – <span class="auto-end-time">--:--</span>
-              <div class="custom-time-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;">
-                <!-- picker content will be added dynamically -->
-              </div>
-            </td>
-            <td class="duration-col"><input type="number" class="duration" min="0" step="10" placeholder="min"><div class="custom-duration-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;"></div></td>
-            <td class="delete-col">
-              <button class="row-delete-btn" title="Delete row">🗑️</button>
-            </td>
-          </tr>
-          <tr draggable="true">
-            <td class="handle-col">≡</td>
-            <td class="task-col" contenteditable="true"></td>
-            <td class="interval-col">
-              <input type="checkbox" class="lock-schedule-cb" title="Fix time">
-              <input type="text" class="start-hh" maxlength="2" size="2" placeholder="hh">:<input type="text" class="start-mm" maxlength="2" size="2" placeholder="mm">
-              – <span class="auto-end-time">--:--</span>
-              <div class="custom-time-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;">
-                <!-- picker content will be added dynamically -->
-              </div>
-            </td>
-            <td class="duration-col"><input type="number" class="duration" min="0" step="10" placeholder="min"><div class="custom-duration-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;"></div></td>
-            <td class="delete-col">
-              <button class="row-delete-btn" title="Delete row">🗑️</button>
-            </td>
-          </tr>
-          <tr draggable="true">
-            <td class="handle-col">≡</td>
-            <td class="task-col" contenteditable="true"></td>
-            <td class="interval-col">
-              <input type="checkbox" class="lock-schedule-cb" title="Fix time">
-              <input type="text" class="start-hh" maxlength="2" size="2" placeholder="hh">:<input type="text" class="start-mm" maxlength="2" size="2" placeholder="mm">
-              – <span class="auto-end-time">--:--</span>
-              <div class="custom-time-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;">
-                <!-- picker content will be added dynamically -->
-              </div>
-            </td>
-            <td class="duration-col"><input type="number" class="duration" min="0" step="10" placeholder="min"><div class="custom-duration-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;"></div></td>
-            <td class="delete-col">
-              <button class="row-delete-btn" title="Delete row">🗑️</button>
-            </td>
-          </tr>
-          <tr draggable="true">
-            <td class="handle-col">≡</td>
-            <td class="task-col" contenteditable="true"></td>
-            <td class="interval-col">
-              <input type="checkbox" class="lock-schedule-cb" title="Fix time">
-              <input type="text" class="start-hh" maxlength="2" size="2" placeholder="hh">:<input type="text" class="start-mm" maxlength="2" size="2" placeholder="mm">
-              – <span class="auto-end-time">--:--</span>
-              <div class="custom-time-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;">
-                <!-- picker content will be added dynamically -->
-              </div>
-            </td>
-            <td class="duration-col"><input type="number" class="duration" min="0" step="10" placeholder="min"><div class="custom-duration-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;"></div></td>
-            <td class="delete-col">
-              <button class="row-delete-btn" title="Delete row">🗑️</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div class="table-buttons">
-        <div class="add-row-group">
-          <button class="add-row-btn" title="Add row">➕</button>
-          <div class="add-row-dropdown">
-            <button data-rows="2">+ 2 rows</button>
-            <button data-rows="3">+ 3 rows</button>
-            <button data-rows="4">+ 4 rows</button>
+    <div class="schedule-block">
+      <div class="header-container">
+        <span class="block-arrows">
+          <button class="block-arrow-btn block-arrow-up" title="Move up">▲</button>
+          <button class="block-arrow-btn block-arrow-down" title="Move down">▼</button>
+        </span>
+        <div class="header-title" contenteditable="true" data-placeholder="Day"></div>
+        <input type="date" class="header-date">
       </div>
-    </div>
-        <button class="add-table-btn" title="Add table">🗒️</button>
-        <button class="export-ics-btn" title="Export to Calendar" style="background:#1976d2; color:#fff;">📅</button>
-        <button class="doc-btn" title="Copy as text" style="background:#1976d2; color:#fff;">📄</button>
+
+      <div class="table-wrapper">
+        <table>
+          <colgroup>
+            <col class="handle-col">
+            <col class="task-col">
+            <col class="interval-col">
+            <col class="duration-col">
+            <col class="delete-col">
+          </colgroup>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Task</th>
+              <th class="interval-col">SCHEDULE</th>
+              <th class="duration-col">DURATION</th>
+              <th class="delete-col"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr draggable="true">
+              <td class="handle-col">≡</td>
+              <td class="task-col" contenteditable="true"></td>
+              <td class="interval-col">
+                <input type="checkbox" class="lock-schedule-cb" title="Fix time">
+                <input type="text" class="start-hh" maxlength="2" size="2" placeholder="hh">:<input type="text" class="start-mm" maxlength="2" size="2" placeholder="mm">
+                – <span class="auto-end-time">--:--</span>
+                <div class="custom-time-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;">
+                  <!-- picker content will be added dynamically -->
+                </div>
+              </td>
+              <td class="duration-col"><input type="number" class="duration" min="0" step="10" placeholder="min"><div class="custom-duration-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;"></div></td>
+              <td class="delete-col">
+                <button class="row-delete-btn" title="Delete row">🗑️</button>
+              </td>
+            </tr>
+            <tr draggable="true">
+              <td class="handle-col">≡</td>
+              <td class="task-col" contenteditable="true"></td>
+              <td class="interval-col">
+                <input type="checkbox" class="lock-schedule-cb" title="Fix time">
+                <input type="text" class="start-hh" maxlength="2" size="2" placeholder="hh">:<input type="text" class="start-mm" maxlength="2" size="2" placeholder="mm">
+                – <span class="auto-end-time">--:--</span>
+                <div class="custom-time-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;">
+                  <!-- picker content will be added dynamically -->
+                </div>
+              </td>
+              <td class="duration-col"><input type="number" class="duration" min="0" step="10" placeholder="min"><div class="custom-duration-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;"></div></td>
+              <td class="delete-col">
+                <button class="row-delete-btn" title="Delete row">🗑️</button>
+              </td>
+            </tr>
+            <tr draggable="true">
+              <td class="handle-col">≡</td>
+              <td class="task-col" contenteditable="true"></td>
+              <td class="interval-col">
+                <input type="checkbox" class="lock-schedule-cb" title="Fix time">
+                <input type="text" class="start-hh" maxlength="2" size="2" placeholder="hh">:<input type="text" class="start-mm" maxlength="2" size="2" placeholder="mm">
+                – <span class="auto-end-time">--:--</span>
+                <div class="custom-time-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;">
+                  <!-- picker content will be added dynamically -->
+                </div>
+              </td>
+              <td class="duration-col"><input type="number" class="duration" min="0" step="10" placeholder="min"><div class="custom-duration-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;"></div></td>
+              <td class="delete-col">
+                <button class="row-delete-btn" title="Delete row">🗑️</button>
+              </td>
+            </tr>
+            <tr draggable="true">
+              <td class="handle-col">≡</td>
+              <td class="task-col" contenteditable="true"></td>
+              <td class="interval-col">
+                <input type="checkbox" class="lock-schedule-cb" title="Fix time">
+                <input type="text" class="start-hh" maxlength="2" size="2" placeholder="hh">:<input type="text" class="start-mm" maxlength="2" size="2" placeholder="mm">
+                – <span class="auto-end-time">--:--</span>
+                <div class="custom-time-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;">
+                  <!-- picker content will be added dynamically -->
+                </div>
+              </td>
+              <td class="duration-col"><input type="number" class="duration" min="0" step="10" placeholder="min"><div class="custom-duration-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;"></div></td>
+              <td class="delete-col">
+                <button class="row-delete-btn" title="Delete row">🗑️</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="table-buttons">
+          <div class="add-row-group">
+            <button class="add-row-btn" title="Add row">➕</button>
+            <div class="add-row-dropdown">
+              <button data-rows="2">+ 2 rows</button>
+              <button data-rows="3">+ 3 rows</button>
+              <button data-rows="4">+ 4 rows</button>
+        </div>
+      </div>
+          <button class="add-table-btn" title="Add table">🗒️</button>
+          <button class="export-ics-btn" title="Export table to Calendar" style="background:#1976d2; color:#fff;">📅</button>
+          <button class="doc-btn" title="Copy as text" style="background:#1976d2; color:#fff;">📄</button>
+        </div>
       </div>
     </div>
     <div id="info-panel">
       <button id="close-info-btn" title="Close">&times;</button>
       <p>Important: everything you do with this planner is processed locally on your computer. <br>If you refresh the page, everything will be lost. Export your progress using the 📅 or 📄 buttons.</p>
       <h3>🚀 Get Started</h3>
-      <ul>
+      <ol>
         <li>Add task descriptions in <b>TASK</b>.</li>
         <li>Set the estimated time in <b>DURATION</b>.</li>
         <li>Fill in the top row of <b>SCHEDULE</b> — the planner auto-generates your schedule.</li>
-      </ul>
+      </ol>
   
       <h3>⚙️ Adjust Your Schedule</h3>
       <ul>
@@ -803,7 +895,6 @@ Make it visually empty but present */
   
       <h3>💾 Save & Resume Later</h3>
       <ol>
-        <li>(Crucial!) fill out the <b>TASK</b> and <b>DURATION</b> columns and the first raw of <b>SCHEDULE</b>.
         <li>Export with <b>📅</b>.</li>
         <li>To restore, drag the downloaded .ics file onto the page — your table will reappear.</li>
       </ol>
@@ -854,16 +945,46 @@ Make it visually empty but present */
       }
 
       // Automatically fill the Day header with date and day of week
-      const header = document.getElementById('header');
-      if (header && (!header.textContent || header.textContent.trim() === '')) {
-        const d = new Date();
-        const dd = String(d.getDate()).padStart(2, '0');
-        const mm = String(d.getMonth() + 1).padStart(2, '0');
-        const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-        const day = days[d.getDay()];
-        header.textContent = `${dd}/${mm} ${day}`;
+      const firstHeaderContainer = document.querySelector('.header-container');
+      if (firstHeaderContainer) {
+        const titleEl = firstHeaderContainer.querySelector('.header-title');
+        const dateEl = firstHeaderContainer.querySelector('.header-date');
+
+        if (titleEl && (!titleEl.textContent || titleEl.textContent.trim() === '')) {
+          const d = new Date();
+          const yyyy = d.getFullYear();
+          const mm = String(d.getMonth() + 1).padStart(2, '0');
+          const dd = String(d.getDate()).padStart(2, '0');
+          const daysFull = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+          const dayFull = daysFull[d.getDay()];
+          titleEl.textContent = dayFull;
+          if (dateEl) {
+            dateEl.value = `${yyyy}-${mm}-${dd}`;
+          }
+        }
       }
 
+      document.addEventListener('change', e => {
+        if (e.target.classList.contains('header-date')) {
+            const container = e.target.closest('.header-container');
+            const titleEl = container.querySelector('.header-title');
+            const dateVal = e.target.value;
+
+            if (!dateVal || !titleEl) return;
+
+            const currentTitle = titleEl.textContent.trim();
+            const isDefaultTitle = /^\d{2}\/\d{2} (Sun|Mon|Tue|Wed|Thu|Fri|Sat)$/.test(currentTitle);
+
+            if (isDefaultTitle || !currentTitle) {
+                const [yyyy, mm, dd] = dateVal.split('-');
+                const d = new Date(`${dateVal}T12:00:00`);
+                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                const day = days[d.getDay()];
+                titleEl.textContent = `${dd}/${mm} ${day}`;
+            }
+        }
+      });
+      
       const container = document.querySelector('.planner-container');
 
       // Export to .ics
@@ -878,18 +999,21 @@ Make it visually empty but present */
         if (e.target.classList.contains('export-ics-btn')) {
           let ics = 'BEGIN:VCALENDAR\nVERSION:2.0\nCALSCALE:GREGORIAN\n';
           const wrapper = e.target.closest('.table-wrapper');
-          let header = wrapper.previousElementSibling;
+          const headerContainer = wrapper.previousElementSibling;
           let title = '';
           let dateStr = '';
-          if (header && header.getAttribute && header.getAttribute('contenteditable')) {
-            title = header.textContent.trim() || header.getAttribute('data-placeholder') || '';
-            const match = title.match(/(\d{2})\/(\d{2})/);
-            if (match) {
-              const d = new Date();
-              const yyyy = d.getFullYear();
-              dateStr = `${yyyy}-${match[2]}-${match[1]}`;
+
+          if (headerContainer && headerContainer.classList.contains('header-container')) {
+            const titleEl = headerContainer.querySelector('.header-title');
+            const dateEl = headerContainer.querySelector('.header-date');
+            if (titleEl) {
+              title = titleEl.textContent.trim();
+            }
+            if (dateEl && dateEl.value) {
+              dateStr = dateEl.value; // YYYY-MM-DD
             }
           }
+
           if (!dateStr) {
             const today = new Date();
             const yyyy = today.getFullYear();
@@ -897,15 +1021,20 @@ Make it visually empty but present */
             const dd = String(today.getDate()).padStart(2, '0');
             dateStr = `${yyyy}-${mm}-${dd}`;
           }
+
           const icsDateStr = dateStr.replace(/-/g, '');
           wrapper.querySelectorAll('tbody tr').forEach((tr) => {
             if (tr.classList.contains('time-gap-row')) return;
             const desc  = tr.querySelector('td.task-col')?.textContent.trim();
+            if (!desc) return; // Skip rows without a task description
+
             const sh = tr.querySelector('.start-hh')?.value;
             const sm = tr.querySelector('.start-mm')?.value;
             const dur = tr.querySelector('.duration')?.value;
             const autoEnd = tr.querySelector('.auto-end-time')?.textContent;
-            if (desc && sh && sm && dur && autoEnd && autoEnd !== '--:--') {
+
+            // Case 1: Timed event (has start time and duration)
+            if (sh && sm && dur && autoEnd && autoEnd !== '--:--') {
               const [eh, em] = autoEnd.split(':');
               const dtStart = toIcsDate(icsDateStr, sh, sm);
               const dtEnd   = toIcsDate(icsDateStr, eh, em);
@@ -914,6 +1043,14 @@ Make it visually empty but present */
               if (title) ics += `DESCRIPTION:${title}\n`;
               ics += `DTSTART:${dtStart}\n`;
               ics += `DTEND:${dtEnd}\n`;
+              ics += 'END:VEVENT\n';
+            }
+            // Case 2: All-day event (task exists, but no time)
+            else {
+              ics += 'BEGIN:VEVENT\n';
+              ics += `SUMMARY:${desc.replace(/\n/g, ' ')}\n`;
+              if (title) ics += `DESCRIPTION:${title}\n`;
+              ics += `DTSTART;VALUE=DATE:${icsDateStr}\n`;
               ics += 'END:VEVENT\n';
             }
           });
@@ -934,7 +1071,7 @@ Make it visually empty but present */
         if (e.target.classList.contains('doc-btn')) {
           const wrapper = e.target.closest('.table-wrapper');
           const table = wrapper.querySelector('table');
-          const header = wrapper.previousElementSibling;
+          const headerContainer = wrapper.previousElementSibling;
           
           // Clone table for manipulations
           const tableClone = table.cloneNode(true);
@@ -978,12 +1115,15 @@ Make it visually empty but present */
 
           // --- Prepare data for clipboard ---
           const tempDiv = document.createElement('div');
-          if (header && header.textContent) {
-              const h = document.createElement('div');
-              h.textContent = header.textContent;
-              h.style.fontWeight = 'bold';
-              h.style.marginBottom = '0.5em';
-              tempDiv.appendChild(h);
+          if (headerContainer && headerContainer.classList.contains('header-container')) {
+              const titleEl = headerContainer.querySelector('.header-title');
+              if (titleEl && titleEl.textContent) {
+                const h = document.createElement('div');
+                h.textContent = titleEl.textContent;
+                h.style.fontWeight = 'bold';
+                h.style.marginBottom = '0.5em';
+                tempDiv.appendChild(h);
+              }
           }
           tempDiv.appendChild(tableClone);
 
@@ -1019,39 +1159,34 @@ Make it visually empty but present */
       // Delegate clicks: add-row, add-table, auto-fill
       container.addEventListener('click', e => {
         if (e.target.matches('.add-table-btn')) {
-          let origTable = e.target.closest('.table-wrapper');
-          let origHeader = origTable.previousElementSibling;
-          if (!origHeader || !origHeader.hasAttribute('contenteditable')) {
-            origHeader = container.querySelector('#header, .header');
-          }
-          const cloneHeader = origHeader.cloneNode(true);
+          const scheduleBlock = e.target.closest('.schedule-block');
+          if (!scheduleBlock) return;
+
+          const cloneBlock = scheduleBlock.cloneNode(true);
+          const titleEl = cloneBlock.querySelector('.header-title');
+          const dateEl = cloneBlock.querySelector('.header-date');
+
           // Set header to +1 day ahead of previous
-          let prevDate = null;
-          // Try to get date from previous header
-          const prevText = origHeader.textContent.trim();
-          const dateMatch = prevText.match(/(\d{2})\/(\d{2})/);
-          if (dateMatch) {
-            const prev = new Date();
-            prev.setDate(1); // reset to first day of month
-            prev.setMonth(parseInt(dateMatch[2], 10) - 1);
-            prev.setDate(parseInt(dateMatch[1], 10));
-            prev.setDate(prev.getDate() + 1);
-            const dd = String(prev.getDate()).padStart(2, '0');
-            const mm = String(prev.getMonth() + 1).padStart(2, '0');
-            const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-            const day = days[prev.getDay()];
-            cloneHeader.textContent = `${dd}/${mm} ${day}`;
+          let prevDate;
+          const prevDateEl = scheduleBlock.querySelector('.header-date');
+          if (prevDateEl && prevDateEl.value) {
+            prevDate = new Date(`${prevDateEl.value}T12:00:00`);
+            prevDate.setDate(prevDate.getDate() + 1);
           } else {
-            // If failed — set to tomorrow
-            const d = new Date();
-            d.setDate(d.getDate() + 1);
-            const dd = String(d.getDate()).padStart(2, '0');
-            const mm = String(d.getMonth() + 1).padStart(2, '0');
-            const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-            const day = days[d.getDay()];
-            cloneHeader.textContent = `${dd}/${mm} ${day}`;
+            prevDate = new Date();
+            prevDate.setDate(prevDate.getDate() + 1);
           }
-          const cloneTable = origTable.cloneNode(true);
+          
+          const dd = String(prevDate.getDate()).padStart(2, '0');
+          const mm = String(prevDate.getMonth() + 1).padStart(2, '0');
+          const yyyy = prevDate.getFullYear();
+          const daysFull = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+          const dayFull = daysFull[prevDate.getDay()];
+          
+          if (titleEl) titleEl.textContent = dayFull;
+          if (dateEl) dateEl.value = `${yyyy}-${mm}-${dd}`;
+
+          const cloneTable = cloneBlock.querySelector('table');
           // Clear new table content
           // 1. Remove all time-gap-row rows
           cloneTable.querySelectorAll('tr.time-gap-row').forEach(row => row.remove());
@@ -1067,7 +1202,7 @@ Make it visually empty but present */
           // 5. Remove red highlight schedule-overlap
           cloneTable.querySelectorAll('tr.schedule-overlap').forEach(tr => tr.classList.remove('schedule-overlap'));
           // Add remove button only to new tables
-          const btns = cloneTable.querySelector('.table-buttons');
+          const btns = cloneBlock.querySelector('.table-buttons');
           if (btns && !btns.querySelector('.remove-table-btn')) {
             const removeBtn = document.createElement('button');
             removeBtn.className = 'remove-table-btn';
@@ -1076,9 +1211,15 @@ Make it visually empty but present */
             removeBtn.textContent = '🗒️';
             btns.insertBefore(removeBtn, btns.querySelector('.export-ics-btn'));
           }
-          container.appendChild(cloneHeader);
-          container.appendChild(cloneTable);
-          initTable(cloneTable.querySelector('table'));
+
+          if (scheduleBlock.nextElementSibling) {
+            container.insertBefore(cloneBlock, scheduleBlock.nextElementSibling);
+          } else {
+            container.appendChild(cloneBlock);
+          }
+          cloneBlock.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+          initTable(cloneBlock.querySelector('table'));
           enableRowDeleteDelegation();
           initDragAndDrop();
           initAddRowDropdowns();
@@ -1097,13 +1238,10 @@ Make it visually empty but present */
           initDragAndDrop();
         }
         if (e.target.matches('.remove-table-btn')) {
-          const tableWrapper = e.target.closest('.table-wrapper');
-          // Remove header before table if present
-          const header = tableWrapper.previousElementSibling;
-          if (header && header.getAttribute && header.getAttribute('contenteditable')) {
-            header.remove();
+          const scheduleBlock = e.target.closest('.schedule-block');
+          if (scheduleBlock && document.querySelectorAll('.schedule-block').length > 1) {
+             scheduleBlock.remove();
           }
-          tableWrapper.remove();
         }
       });
 
@@ -1232,6 +1370,13 @@ Make it visually empty but present */
               }, 0);
             }
           }
+          // Автоматическая блокировка для всех строк, кроме первой
+          const table = tr.closest('table');
+          const tbody = table && table.tBodies[0];
+          if (tbody && tr !== tbody.firstElementChild) {
+            const lockCb = tr.querySelector('.lock-schedule-cb');
+            if (lockCb && !lockCb.checked) lockCb.checked = true;
+          }
         });
         startMM.addEventListener('input', function() {
           if (this.value.length === 2) {
@@ -1248,6 +1393,14 @@ Make it visually empty but present */
               const table = tr.closest('table');
               autoFillSchedule(table, tr);
             }
+          }
+          // Автоматическая блокировка для всех строк, кроме первой
+          const tr = this.closest('tr');
+          const table = tr && tr.closest('table');
+          const tbody = table && table.tBodies[0];
+          if (tbody && tr !== tbody.firstElementChild) {
+            const lockCb = tr.querySelector('.lock-schedule-cb');
+            if (lockCb && !lockCb.checked) lockCb.checked = true;
           }
         });
         [startHH, startMM].forEach(inp => {
@@ -1922,8 +2075,6 @@ Make it visually empty but present */
           // Parse ICS
           const events = [];
           let cur = null;
-          let calendarTitle = '';
-          let calendarDate = '';
           let lines = text.split(/\r?\n/);
           for (let i = 0; i < lines.length; ++i) {
             let line = lines[i].trim();
@@ -1939,39 +2090,54 @@ Make it visually empty but present */
                 let val = line.slice(idx + 1);
                 cur[key] = val;
               }
-            } else if (line.startsWith('DESCRIPTION:')) {
-              calendarTitle = line.slice('DESCRIPTION:'.length);
             }
           }
           if (!events.length) throw new Error('No events');
-          // Group by DTSTART date
-          const byDate = {};
+          // --- Группировка по DESCRIPTION+дата ---
+          const byDescDate = {};
           for (const ev of events) {
-            if (!ev.DTSTART) continue;
-            // YYYYMMDDTHHMMSS
-            const date = ev.DTSTART.slice(0,8);
-            if (!byDate[date]) byDate[date] = [];
-            byDate[date].push(ev);
-          }
-          for (const date in byDate) {
-            const dayEvents = byDate[date];
-            // Try to get title from DESCRIPTION or SUMMARY
-            let title = calendarTitle;
-            if (!title && dayEvents[0] && dayEvents[0].DESCRIPTION) title = dayEvents[0].DESCRIPTION;
-            // Format date for header
-            let d = date;
-            if (d.length === 8) {
-              const yyyy = d.slice(0,4), mm = d.slice(4,6), dd = d.slice(6,8);
-              const jsDate = new Date(`${yyyy}-${mm}-${dd}`);
-              const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-              title = `${dd}/${mm} ${days[jsDate.getDay()]}`;
+            let date;
+            if (ev['DTSTART;VALUE=DATE']) {
+              date = ev['DTSTART;VALUE=DATE'];
+            } else if (ev.DTSTART) {
+              date = ev.DTSTART.slice(0, 8);
+            } else {
+              continue; // Skip events without a start date
             }
+            const desc = ev.DESCRIPTION || '';
+            const key = desc + '___' + date;
+            if (!byDescDate[key]) byDescDate[key] = { desc, date, events: [] };
+            byDescDate[key].events.push(ev);
+          }
+          for (const key in byDescDate) {
+            const { desc, date, events: dayEvents } = byDescDate[key];
+            let titleText = '';
+            let isoDate = '';
+            if (date.length === 8) {
+              const yyyy = date.slice(0, 4), mm = date.slice(4, 6), dd = date.slice(6, 8);
+              isoDate = `${yyyy}-${mm}-${dd}`;
+              const jsDate = new Date(`${isoDate}T12:00:00`);
+              const daysFull = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+              titleText = daysFull[jsDate.getDay()];
+            }
+            if (desc) titleText = desc;
             // Create header
-            const header = document.createElement('div');
-            header.id = 'header';
-            header.setAttribute('contenteditable', 'true');
-            header.setAttribute('data-placeholder', 'Day');
-            header.textContent = title;
+            const headerContainer = document.createElement('div');
+            headerContainer.className = 'header-container';
+            const titleEl = document.createElement('div');
+            titleEl.className = 'header-title';
+            titleEl.setAttribute('contenteditable', 'true');
+            titleEl.setAttribute('data-placeholder', 'Day');
+            titleEl.textContent = titleText;
+            const dateEl = document.createElement('input');
+            dateEl.type = 'date';
+            dateEl.className = 'header-date';
+            dateEl.value = isoDate;
+            headerContainer.appendChild(titleEl);
+            headerContainer.appendChild(dateEl);
+            // Create schedule block
+            const scheduleBlock = document.createElement('div');
+            scheduleBlock.className = 'schedule-block';
             // Create table
             const wrapper = document.createElement('div');
             wrapper.className = 'table-wrapper';
@@ -1996,16 +2162,19 @@ Make it visually empty but present */
             const tbody = table.querySelector('tbody');
             for (const ev of dayEvents) {
               // Parse times
-              let sh = '--', sm = '--', eh = '--', em = '--', dur = '';
-              if (ev.DTSTART && ev.DTEND) {
+              let sh = '', sm = '', eh = '--:--', dur = '';
+              // Handle timed events
+              if (ev.DTSTART && ev.DTEND && !ev['DTSTART;VALUE=DATE']) {
                 sh = ev.DTSTART.slice(9,11);
                 sm = ev.DTSTART.slice(11,13);
-                eh = ev.DTEND.slice(9,11);
-                em = ev.DTEND.slice(11,13);
+                const endH = ev.DTEND.slice(9,11);
+                const endM = ev.DTEND.slice(11,13);
+                eh = `${endH}:${endM}`;
                 // Duration in minutes
-                const mins = (parseInt(eh,10)*60+parseInt(em,10))-(parseInt(sh,10)*60+parseInt(sm,10));
+                const mins = (parseInt(endH,10)*60+parseInt(endM,10))-(parseInt(sh,10)*60+parseInt(sm,10));
                 dur = mins > 0 ? mins : '';
               }
+              // For all-day events, sh, sm, dur remain empty and eh is '--:--'
               const tr = document.createElement('tr');
               tr.setAttribute('draggable','true');
               tr.innerHTML = `
@@ -2014,7 +2183,7 @@ Make it visually empty but present */
                 <td class="interval-col">
                   <input type="checkbox" class="lock-schedule-cb" title="Fix time">
                   <input type="text" class="start-hh" maxlength="2" size="2" placeholder="hh" value="${sh}">:<input type="text" class="start-mm" maxlength="2" size="2" placeholder="mm" value="${sm}">
-                  – <span class="auto-end-time">${eh}:${em}</span>
+                  – <span class="auto-end-time">${eh}</span>
                   <div class="custom-time-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;"></div>
                 </td>
                 <td class="duration-col"><input type="number" class="duration" min="0" step="10" placeholder="min" value="${dur}"><div class="custom-duration-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;"></div></td>
@@ -2036,20 +2205,345 @@ Make it visually empty but present */
             </div>
             <button class="remove-table-btn" title="Delete table" style="background:#c00;">🗒️</button>
             <button class="add-table-btn" title="Add table">🗒️</button>
-            <button class="export-ics-btn" title="Export to Calendar" style="background:#1976d2; color:#fff;">📅</button>
+            <button class="export-ics-btn" title="Export table to Calendar" style="background:#1976d2; color:#fff;">📅</button>
             <button class="doc-btn" title="Copy as text" style="background:#1976d2; color:#fff;">📄</button>`;
             wrapper.appendChild(btns);
             // Insert into planner
-            container.appendChild(header);
-            container.appendChild(wrapper);
+            scheduleBlock.appendChild(headerContainer);
+            scheduleBlock.appendChild(wrapper);
+            container.appendChild(scheduleBlock);
             // Re-init logic
-            initTable(table, false);  // pass copyFirst = false explicitly
+            // Do not call initTable, as it adds an extra empty row.
+            // Instead, just attach handlers to imported rows.
+            table.querySelectorAll('tbody tr').forEach(tr => attachRow(tr));
             enableRowDeleteDelegation();
             initDragAndDrop();
             initAddRowDropdowns();
           }
         }
       })();
+
+      // --- Global drag&drop for schedule blocks ---
+      (function initBlockDragAndDrop() {
+        const container = document.querySelector('.planner-container');
+        if (!container) return;
+
+        let draggedBlock = null;
+        let placeholder = null;
+
+        // Drag only by .block-handle
+        container.addEventListener('mousedown', (e) => {
+          if (e.target.classList.contains('block-handle')) {
+            const block = e.target.closest('.schedule-block');
+            if (!block) return;
+            block.setAttribute('draggable', 'true');
+          }
+        });
+        container.addEventListener('mouseup', (e) => {
+          document.querySelectorAll('.schedule-block[draggable="true"]').forEach(b => b.removeAttribute('draggable'));
+        });
+        container.addEventListener('dragstart', (e) => {
+          if (!e.target.classList.contains('schedule-block')) return;
+          // Разрешаем только если drag инициирован с .block-handle
+          const handle = e.target.querySelector('.block-handle');
+          if (!handle || !handle.matches(':hover')) {
+            e.preventDefault();
+            return;
+          }
+          draggedBlock = e.target;
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', '');
+          placeholder = document.createElement('div');
+          placeholder.className = 'block-placeholder';
+          placeholder.style.height = `${draggedBlock.offsetHeight}px`;
+          setTimeout(() => {
+            if(draggedBlock) draggedBlock.classList.add('dragging');
+          }, 0);
+        });
+
+        container.addEventListener('dragend', (e) => {
+            if (draggedBlock) {
+                draggedBlock.classList.remove('dragging');
+                draggedBlock.removeAttribute('draggable');
+            }
+            if (placeholder) {
+                placeholder.remove();
+            }
+            draggedBlock = null;
+            placeholder = null;
+        });
+
+        container.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if (!draggedBlock) return;
+            
+            const overBlock = e.target.closest('.schedule-block');
+            if (overBlock && overBlock !== draggedBlock && overBlock !== placeholder) {
+                const rect = overBlock.getBoundingClientRect();
+                const isAfter = e.clientY > rect.top + rect.height / 2;
+                
+                if (isAfter) {
+                    overBlock.after(placeholder);
+                } else {
+                    overBlock.before(placeholder);
+                }
+            } else if (!overBlock && container.contains(e.target)) {
+                 // If dragging over empty container space, append to the end
+                if (container.lastChild !== placeholder) {
+                    container.appendChild(placeholder);
+                }
+            }
+        });
+
+        container.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (!draggedBlock || !placeholder || !placeholder.parentElement) return;
+            
+            placeholder.parentElement.insertBefore(draggedBlock, placeholder);
+        });
+
+      })();
+
+      // --- Block arrows logic ---
+      (function initBlockArrows() {
+        const container = document.querySelector('.planner-container');
+        if (!container) return;
+
+        function updateArrowStates() {
+          const blocks = Array.from(container.querySelectorAll('.schedule-block'));
+          blocks.forEach((block, idx) => {
+            const header = block.querySelector('.header-container');
+            let arrows = header.querySelector('.block-arrows');
+            const tableButtons = block.querySelector('.table-buttons');
+            let removeBtn = tableButtons && tableButtons.querySelector('.remove-table-btn');
+            if (blocks.length > 1) {
+              // --- стрелки ---
+              if (!arrows) {
+                arrows = document.createElement('span');
+                arrows.className = 'block-arrows';
+                arrows.innerHTML = `
+                  <button class="block-arrow-btn block-arrow-up" title="Move up">▲</button>
+                  <button class="block-arrow-btn block-arrow-down" title="Move down">▼</button>
+                `;
+                header.insertBefore(arrows, header.firstChild);
+              }
+              const upBtn = arrows.querySelector('.block-arrow-up');
+              const downBtn = arrows.querySelector('.block-arrow-down');
+              if (upBtn) upBtn.disabled = idx === 0;
+              if (downBtn) downBtn.disabled = idx === blocks.length - 1;
+              // --- кнопка удаления ---
+              if (tableButtons && !removeBtn) {
+                removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-table-btn';
+                removeBtn.title = 'Delete table';
+                removeBtn.style.background = '#c00';
+                removeBtn.textContent = '🗒️';
+                tableButtons.insertBefore(removeBtn, tableButtons.querySelector('.export-ics-btn'));
+              }
+            } else {
+              // --- стрелки ---
+              if (arrows) arrows.remove();
+              // --- кнопка удаления ---
+              if (removeBtn) removeBtn.remove();
+            }
+          });
+        }
+
+        container.addEventListener('click', (e) => {
+          if (e.target.classList.contains('block-arrow-up')) {
+            const block = e.target.closest('.schedule-block');
+            if (!block) return;
+            // Найти предыдущий schedule-block
+            let prev = block.previousElementSibling;
+            while (prev && !prev.classList.contains('schedule-block')) prev = prev.previousElementSibling;
+            if (prev) {
+              container.insertBefore(block, prev);
+              updateArrowStates();
+              block.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+              // Если нет предыдущего, переместить в самое начало
+              container.insertBefore(block, container.firstChild);
+              updateArrowStates();
+              block.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }
+          if (e.target.classList.contains('block-arrow-down')) {
+            const block = e.target.closest('.schedule-block');
+            if (!block) return;
+            // Найти следующий schedule-block
+            let next = block.nextElementSibling;
+            while (next && !next.classList.contains('schedule-block')) next = next.nextElementSibling;
+            if (next) {
+              container.insertBefore(next, block);
+              updateArrowStates();
+              block.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+              // Если нет следующего, переместить в самый конец
+              container.appendChild(block);
+              updateArrowStates();
+              block.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }
+        });
+
+        // Обновлять состояние стрелок при добавлении/удалении таблиц
+        const observer = new MutationObserver(updateArrowStates);
+        observer.observe(container, { childList: true });
+        updateArrowStates();
+      })();
+
+      // --- Export all tables to .ics ---
+      const exportAllBtn = document.getElementById('export-all-btn');
+      if (exportAllBtn) {
+        exportAllBtn.addEventListener('click', function() {
+          let ics = 'BEGIN:VCALENDAR\nVERSION:2.0\nCALSCALE:GREGORIAN\n';
+          const blocks = Array.from(document.querySelectorAll('.schedule-block'));
+          // Собираем названия таблиц
+          const titles = blocks.map(block => {
+            const titleEl = block.querySelector('.header-title');
+            return titleEl ? titleEl.textContent.trim() : '';
+          }).filter(Boolean);
+          // Формируем имя файла: всегда через запятую, только запрещённые символы (кроме запятой) заменяем на _
+          let fileName = titles.map(t => t.replace(/[\\/:*?"<>|]/g, '_')).join(',');
+          if (!fileName) fileName = 'schedule';
+          // (опционально) ограничить длину имени файла, если нужно
+          // Если в имени файла нельзя использовать запятую, заменим на _
+          if (/[^a-zA-Z0-9_\-., ]/.test(fileName) || fileName.length > 80) {
+            fileName = titles.join('_');
+          }
+          fileName = fileName.replace(/[\\/:*?"<>|]/g, '_') || 'schedule';
+          // Экспортируем все таблицы
+          blocks.forEach(block => {
+            const headerContainer = block.querySelector('.header-container');
+            let title = '';
+            let dateStr = '';
+            if (headerContainer) {
+              const titleEl = headerContainer.querySelector('.header-title');
+              const dateEl = headerContainer.querySelector('.header-date');
+              if (titleEl) title = titleEl.textContent.trim();
+              if (dateEl && dateEl.value) dateStr = dateEl.value;
+            }
+            if (!dateStr) {
+              const today = new Date();
+              const yyyy = today.getFullYear();
+              const mm = String(today.getMonth() + 1).padStart(2, '0');
+              const dd = String(today.getDate()).padStart(2, '0');
+              dateStr = `${yyyy}-${mm}-${dd}`;
+            }
+            const icsDateStr = dateStr.replace(/-/g, '');
+            block.querySelectorAll('tbody tr').forEach((tr) => {
+              if (tr.classList.contains('time-gap-row')) return;
+              const desc  = tr.querySelector('td.task-col')?.textContent.trim();
+              if (!desc) return;
+              const sh = tr.querySelector('.start-hh')?.value;
+              const sm = tr.querySelector('.start-mm')?.value;
+              const dur = tr.querySelector('.duration')?.value;
+              const autoEnd = tr.querySelector('.auto-end-time')?.textContent;
+              // Case 1: Timed event
+              if (sh && sm && dur && autoEnd && autoEnd !== '--:--') {
+                const [eh, em] = autoEnd.split(':');
+                const dtStart = `${icsDateStr}T${sh.padStart(2, '0')}${sm.padStart(2, '0')}00`;
+                const dtEnd   = `${icsDateStr}T${eh.padStart(2, '0')}${em.padStart(2, '0')}00`;
+                ics += 'BEGIN:VEVENT\n';
+                ics += `SUMMARY:${desc.replace(/\n/g, ' ')}\n`;
+                if (title) ics += `DESCRIPTION:${title}\n`;
+                ics += `DTSTART:${dtStart}\n`;
+                ics += `DTEND:${dtEnd}\n`;
+                ics += 'END:VEVENT\n';
+              } else {
+                // Case 2: All-day event
+                ics += 'BEGIN:VEVENT\n';
+                ics += `SUMMARY:${desc.replace(/\n/g, ' ')}\n`;
+                if (title) ics += `DESCRIPTION:${title}\n`;
+                ics += `DTSTART;VALUE=DATE:${icsDateStr}\n`;
+                ics += 'END:VEVENT\n';
+              }
+            });
+          });
+          ics += 'END:VCALENDAR';
+          const blob = new Blob([ics], { type: 'text/calendar' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = fileName + '.ics';
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }, 100);
+        });
+      }
+
+      // --- Copy all tables as text ---
+      const copyAllBtn = document.getElementById('copy-all-btn');
+      if (copyAllBtn) {
+        copyAllBtn.addEventListener('click', function() {
+          const blocks = Array.from(document.querySelectorAll('.schedule-block'));
+          const tempDiv = document.createElement('div');
+          blocks.forEach(block => {
+            const header = block.querySelector('.header-title');
+            const table = block.querySelector('table');
+            if (header && header.textContent) {
+              const h = document.createElement('div');
+              h.textContent = header.textContent;
+              h.style.fontWeight = 'bold';
+              h.style.margin = '1em 0 0.5em 0';
+              tempDiv.appendChild(h);
+            }
+            if (table) {
+              const tableClone = table.cloneNode(true);
+              // Удалить handle и delete колонки
+              const colgroup = tableClone.querySelector('colgroup');
+              if (colgroup) {
+                if (colgroup.children[4]) colgroup.children[4].remove();
+                if (colgroup.children[0]) colgroup.children[0].remove();
+              }
+              Array.from(tableClone.rows).forEach(tr => {
+                if (tr.cells[4]) tr.cells[4].remove();
+                if (tr.cells[0]) tr.cells[0].remove();
+                // Преобразовать инпуты в текст
+                if (tr.parentElement.tagName === 'TBODY' && !tr.classList.contains('time-gap-row')) {
+                  const origTr = table.rows[tr.rowIndex];
+                  if (!origTr) return;
+                  const scheduleTd = tr.querySelector('td.interval-col');
+                  if (scheduleTd) {
+                    const sh = origTr.querySelector('.start-hh')?.value.padStart(2, '0') || '--';
+                    const sm = origTr.querySelector('.start-mm')?.value.padStart(2, '0') || '--';
+                    const autoEnd = origTr.querySelector('.auto-end-time')?.textContent || '--:--';
+                    scheduleTd.innerHTML = `${sh}:${sm} – ${autoEnd}`;
+                  }
+                  const durationTd = tr.querySelector('td.duration-col');
+                  if (durationTd) {
+                    durationTd.innerHTML = origTr.querySelector('.duration')?.value || '';
+                  }
+                }
+              });
+              tempDiv.appendChild(tableClone);
+            }
+          });
+          // --- Use Clipboard API ---
+          const htmlBlob = new Blob([tempDiv.innerHTML], { type: 'text/html' });
+          const textBlob = new Blob([tempDiv.innerText], { type: 'text/plain' });
+          navigator.clipboard.write([
+              new ClipboardItem({
+                  'text/html': htmlBlob,
+                  'text/plain': textBlob
+              })
+          ]).then(() => {
+              const originalText = copyAllBtn.textContent;
+              const originalBg = copyAllBtn.style.background;
+              copyAllBtn.textContent = '✅';
+              copyAllBtn.style.background = '#28a745';
+              setTimeout(() => {
+                  copyAllBtn.textContent = originalText;
+                  copyAllBtn.style.background = originalBg;
+              }, 1500);
+          }).catch(err => {
+              alert('Failed to copy. Please check browser permissions.');
+          });
+        });
+      }
     });
   </script>
 </body>
