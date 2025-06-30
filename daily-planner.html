@@ -1370,7 +1370,7 @@ Make it visually empty but present */
               }, 0);
             }
           }
-          // Автоматическая блокировка для всех строк, кроме первой
+          // Automatic locking for all rows except the first
           const table = tr.closest('table');
           const tbody = table && table.tBodies[0];
           if (tbody && tr !== tbody.firstElementChild) {
@@ -1394,7 +1394,7 @@ Make it visually empty but present */
               autoFillSchedule(table, tr);
             }
           }
-          // Автоматическая блокировка для всех строк, кроме первой
+          // Automatic locking for all rows except the first
           const tr = this.closest('tr');
           const table = tr && tr.closest('table');
           const tbody = table && table.tBodies[0];
@@ -2093,7 +2093,7 @@ Make it visually empty but present */
             }
           }
           if (!events.length) throw new Error('No events');
-          // --- Группировка по DESCRIPTION+дата ---
+          // --- Grouping by DESCRIPTION+date ---
           const byDescDate = {};
           for (const ev of events) {
             let date;
@@ -2244,7 +2244,7 @@ Make it visually empty but present */
         });
         container.addEventListener('dragstart', (e) => {
           if (!e.target.classList.contains('schedule-block')) return;
-          // Разрешаем только если drag инициирован с .block-handle
+          // Allow only if drag is initiated from .block-handle
           const handle = e.target.querySelector('.block-handle');
           if (!handle || !handle.matches(':hover')) {
             e.preventDefault();
@@ -2317,7 +2317,7 @@ Make it visually empty but present */
             const tableButtons = block.querySelector('.table-buttons');
             let removeBtn = tableButtons && tableButtons.querySelector('.remove-table-btn');
             if (blocks.length > 1) {
-              // --- стрелки ---
+              // --- arrows ---
               if (!arrows) {
                 arrows = document.createElement('span');
                 arrows.className = 'block-arrows';
@@ -2331,7 +2331,7 @@ Make it visually empty but present */
               const downBtn = arrows.querySelector('.block-arrow-down');
               if (upBtn) upBtn.disabled = idx === 0;
               if (downBtn) downBtn.disabled = idx === blocks.length - 1;
-              // --- кнопка удаления ---
+              // --- delete button ---
               if (tableButtons && !removeBtn) {
                 removeBtn = document.createElement('button');
                 removeBtn.className = 'remove-table-btn';
@@ -2341,9 +2341,9 @@ Make it visually empty but present */
                 tableButtons.insertBefore(removeBtn, tableButtons.querySelector('.export-ics-btn'));
               }
             } else {
-              // --- стрелки ---
+              // --- arrows ---
               if (arrows) arrows.remove();
-              // --- кнопка удаления ---
+              // --- delete button ---
               if (removeBtn) removeBtn.remove();
             }
           });
@@ -2353,7 +2353,7 @@ Make it visually empty but present */
           if (e.target.classList.contains('block-arrow-up')) {
             const block = e.target.closest('.schedule-block');
             if (!block) return;
-            // Найти предыдущий schedule-block
+            // Find previous schedule-block
             let prev = block.previousElementSibling;
             while (prev && !prev.classList.contains('schedule-block')) prev = prev.previousElementSibling;
             if (prev) {
@@ -2361,7 +2361,7 @@ Make it visually empty but present */
               updateArrowStates();
               block.scrollIntoView({ behavior: 'smooth', block: 'center' });
             } else {
-              // Если нет предыдущего, переместить в самое начало
+              // If there is no previous, move to the very beginning
               container.insertBefore(block, container.firstChild);
               updateArrowStates();
               block.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -2370,7 +2370,7 @@ Make it visually empty but present */
           if (e.target.classList.contains('block-arrow-down')) {
             const block = e.target.closest('.schedule-block');
             if (!block) return;
-            // Найти следующий schedule-block
+            // Find next schedule-block
             let next = block.nextElementSibling;
             while (next && !next.classList.contains('schedule-block')) next = next.nextElementSibling;
             if (next) {
@@ -2378,7 +2378,7 @@ Make it visually empty but present */
               updateArrowStates();
               block.scrollIntoView({ behavior: 'smooth', block: 'center' });
             } else {
-              // Если нет следующего, переместить в самый конец
+              // If there is no next, move to the very end
               container.appendChild(block);
               updateArrowStates();
               block.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -2386,7 +2386,7 @@ Make it visually empty but present */
           }
         });
 
-        // Обновлять состояние стрелок при добавлении/удалении таблиц
+        // Update arrow states when adding/removing tables
         const observer = new MutationObserver(updateArrowStates);
         observer.observe(container, { childList: true });
         updateArrowStates();
@@ -2398,21 +2398,21 @@ Make it visually empty but present */
         exportAllBtn.addEventListener('click', function() {
           let ics = 'BEGIN:VCALENDAR\nVERSION:2.0\nCALSCALE:GREGORIAN\n';
           const blocks = Array.from(document.querySelectorAll('.schedule-block'));
-          // Собираем названия таблиц
+          // Collect table names
           const titles = blocks.map(block => {
             const titleEl = block.querySelector('.header-title');
             return titleEl ? titleEl.textContent.trim() : '';
           }).filter(Boolean);
-          // Формируем имя файла: всегда через запятую, только запрещённые символы (кроме запятой) заменяем на _
-          let fileName = titles.map(t => t.replace(/[\\/:*?"<>|]/g, '_')).join(',');
+          // Form the file name: always separated by comma and space, only forbidden characters (except comma) are replaced with _
+          let fileName = titles.map(t => t.replace(/[\\/:*?"<>|]/g, '_')).join(', ');
           if (!fileName) fileName = 'schedule';
-          // (опционально) ограничить длину имени файла, если нужно
-          // Если в имени файла нельзя использовать запятую, заменим на _
+          // (optional) limit the file name length if needed
+          // If the file name cannot use a comma, replace with _
           if (/[^a-zA-Z0-9_\-., ]/.test(fileName) || fileName.length > 80) {
             fileName = titles.join('_');
           }
           fileName = fileName.replace(/[\\/:*?"<>|]/g, '_') || 'schedule';
-          // Экспортируем все таблицы
+          // Export all tables
           blocks.forEach(block => {
             const headerContainer = block.querySelector('.header-container');
             let title = '';
@@ -2493,7 +2493,7 @@ Make it visually empty but present */
             }
             if (table) {
               const tableClone = table.cloneNode(true);
-              // Удалить handle и delete колонки
+              // Remove handle and delete columns
               const colgroup = tableClone.querySelector('colgroup');
               if (colgroup) {
                 if (colgroup.children[4]) colgroup.children[4].remove();
@@ -2502,7 +2502,7 @@ Make it visually empty but present */
               Array.from(tableClone.rows).forEach(tr => {
                 if (tr.cells[4]) tr.cells[4].remove();
                 if (tr.cells[0]) tr.cells[0].remove();
-                // Преобразовать инпуты в текст
+                // Turn inputs into text
                 if (tr.parentElement.tagName === 'TBODY' && !tr.classList.contains('time-gap-row')) {
                   const origTr = table.rows[tr.rowIndex];
                   if (!origTr) return;
