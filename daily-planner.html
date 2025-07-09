@@ -2298,7 +2298,7 @@ Make it visually empty but present */
               tbody.appendChild(tr);
             }
             wrapper.appendChild(table);
-            // Add table buttons
+            // Add day buttons
             const btns = document.createElement('div');
             btns.className = 'table-buttons';
             btns.innerHTML = `<div class="add-row-group">
@@ -2309,9 +2309,9 @@ Make it visually empty but present */
                 <button data-rows="4">+ 4 rows</button>
               </div>
             </div>
-            <button class="remove-table-btn" title="Delete table" style="background:#c00;">🗒️</button>
-            <button class="add-table-btn" title="Add table">🗒️</button>
-            <button class="export-ics-btn" title="Export table to Calendar" style="background:#1976d2; color:#fff;">📅</button>
+            <button class="remove-table-btn" title="Delete day" style="background:#c00;">🗒️</button>
+            <button class="add-table-btn" title="Add day">🗒️</button>
+            <button class="export-ics-btn" title="Export day to Calendar" style="background:#1976d2; color:#fff;">📅</button>
             <button class="doc-btn" title="Copy as text" style="background:#1976d2; color:#fff;">📄</button>`;
             wrapper.appendChild(btns);
             // Insert into planner
@@ -2441,7 +2441,7 @@ Make it visually empty but present */
               if (tableButtons && !removeBtn) {
                 removeBtn = document.createElement('button');
                 removeBtn.className = 'remove-table-btn';
-                removeBtn.title = 'Delete table';
+                removeBtn.title = 'Delete day';
                 removeBtn.style.background = '#c00';
                 removeBtn.textContent = '🗒️';
                 tableButtons.insertBefore(removeBtn, tableButtons.querySelector('.export-ics-btn'));
