@@ -898,7 +898,7 @@ Make it visually empty but present */
     </div>
     <div id="info-panel">
       <button id="close-info-btn" title="Close">&times;</button>
-      <p>Important: everything you do with this planner is processed locally in your browser.<br>If you refresh the page, everything will be lost. Export your progress using the 📅 or 📄 buttons.</p>
+      <p>Important: everything you do with this planner is processed locally on your computer. <br>If you refresh the page, everything will be lost. Export your progress using the 📅 or 📄 buttons.</p>
       <h3>🎯 Purpose of the Planner</h3>
       <p>Calculate how many tasks you can fit into a day and make changes to the schedule with a simple drag and drop.</p>
       <h3>🚀 Get Started</h3>
@@ -2002,6 +2002,9 @@ Make it visually empty but present */
             e.preventDefault();
             if (!globalDragged || !globalPlaceholder || !globalPlaceholder.parentElement) return;
 
+            // Save reference to the source table before moving the row
+            const sourceTable = globalDragged.closest('table');
+
             const tbody = globalPlaceholder.parentElement;
             const table = tbody.closest('table');
             
@@ -2034,6 +2037,10 @@ Make it visually empty but present */
             
             if (globalPlaceholder) globalPlaceholder.remove();
             if (table) autoFillSchedule(table);
+            // --- ADDED: recalculate schedule for the source table if different ---
+            if (sourceTable && sourceTable !== table) {
+                autoFillSchedule(sourceTable);
+            }
         });
       }
 
