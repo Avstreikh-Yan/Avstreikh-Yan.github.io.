@@ -744,6 +744,14 @@ Make it visually empty but present */
     body.mobile-blocked #mobile-block-message {
       display: flex !important;
     }
+    /* Hover effects for fixed buttons */
+    #info-btn:hover,
+    #export-all-btn:hover,
+    #copy-all-btn:hover,
+    #clean-btn:hover {
+      transform: scale(1.5);
+      transition: transform 0.2s ease;
+    }
   </style>
 </head>
 <body>
@@ -751,7 +759,7 @@ Make it visually empty but present */
   <div>
     <p style="margin: 0.5em 0; font-size: 1.2rem;">Oops, the planner is not available on mobile devices :(</p>
     <p style="margin: 0.5em 0; font-size: 1.2rem;">Waiting for you on a desktop!</p>
-    <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExdWE5Mmp4bHEzdXZuMzFzcmFrbTg3ZDM4c3lkZWZqMGVhempycjRjbCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/VpysUTI25mTlK/giphy.gif" alt="Waiting..." style="max-width: 100%; margin-top: 20px;">
+    <img src="https://ianavstreikh.pro/content/Dancing_dog.webp" alt="Waiting..." style="max-width: 100%; margin-top: 20px;">
   </div>
 </div>
 <script>
@@ -768,6 +776,8 @@ Make it visually empty but present */
 <button id="info-btn" title="How to use">i</button>
 <button id="export-all-btn" title=" Export all to Calendar" style="position:fixed;top:3.7rem;left:2rem;z-index:1001;width:20px;height:20px;border-radius:50%;border:1px solid #1A2B6C;background:#fff;color:#1A2B6C;font-size:0.53rem;font-weight:bold;display:flex;align-items:center;justify-content:center;padding-bottom:1px;cursor:pointer;">📅</button>
 <button id="copy-all-btn" title="Copy all as text" style="position:fixed;top:5.4rem;left:2rem;z-index:1001;width:20px;height:20px;border-radius:50%;border:1px solid #1A2B6C;background:#fff;color:#1A2B6C;font-size:0.53rem;font-weight:bold;display:flex;align-items:center;justify-content:center;padding-bottom:1px;cursor:pointer;">📄</button>
+<!-- Added clean button below -->
+<button id="clean-btn" title="Clean" style="position:fixed;top:7.1rem;left:2rem;z-index:1001;width:20px;height:20px;border-radius:50%;border:1px solid #1A2B6C;background:#fff;color:#1A2B6C;font-size:0.53rem;font-weight:bold;display:flex;align-items:center;justify-content:center;padding-bottom:1px;cursor:pointer;">🧹</button>
 <script>
   if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
     document.body.innerHTML = `
@@ -898,7 +908,7 @@ Make it visually empty but present */
     </div>
     <div id="info-panel">
       <button id="close-info-btn" title="Close">&times;</button>
-      <p>Important: everything you do with this planner is processed locally on your computer. <br>If you refresh the page, everything will be lost. Export your progress using the 📅 or 📄 buttons.</p>
+      <p>Everything you do with this planner is processed locally in your browser. <br>Your last session will be cached are restored when you refresh the page. To clean the cache, click 🧹.</p>
       <h3>🎯 Purpose of the Planner</h3>
       <p>Calculate how many tasks you can fit into a day and make changes to the schedule with a simple drag and drop.</p>
       <h3>🚀 Get Started</h3>
@@ -921,16 +931,12 @@ Make it visually empty but present */
         <li><b>➕</b> — Add a row</li>
         <li><b>🗑️</b> — Delete the row (hover a row to see it)</li>
         <li><b>🗒️</b> — Add a new day</li>
-        <li><b>📅</b> — Export as an .ics file (open it to add your schedule to Apple Calendar)</li>
+        <li><b>📅</b> — Export as an .ics file (open it to add your schedule to Calendar)</li>
         <li><b>📄</b> — Copy as text (paste into Notion or docs)</li>
       </ul>
   
-      <h3>💾 Save & Resume Later</h3>
-      <ol>
-        <li>Export with <b>📅</b>.</li>
-        <li>To restore, drag the downloaded .ics file onto the page — your schedule will reappear.</li>
-      </ol>
-  
+      <h3>⬇️ Import</h3>
+        <p>The days from an exported .ics file could be restored. Simply drag the downloaded .ics file onto the page.</p>
       <h3>ℹ️ Notes</h3>
       <ul>
         <li>Green line "time gap" = free slot. Pops up and disappears automatically based on your schedule.</li>
@@ -1840,8 +1846,19 @@ Make it visually empty but present */
           e.target.classList.add('selected');
           input.focus();
           input.select();
-          // If hours selected — close picker and simulate click on minutes
+          // If hours selected — update value, lock row (if not first), and update schedule immediately
           if (type === 'start-hh') {
+            const tr = td.closest('tr');
+            if (tr) {
+              const table = tr.closest('table');
+              const tbody = table && table.tBodies[0];
+              // Auto-lock for all rows except the first
+              if (tbody && tr !== tbody.firstElementChild) {
+                const lockCb = tr.querySelector('.lock-schedule-cb');
+                if (lockCb && !lockCb.checked) lockCb.checked = true;
+              }
+              autoFillSchedule(table, tr);
+            }
             const picker = td.querySelector('.custom-time-picker');
             if (picker) picker.style.display = 'none';
             const mmInput = td.querySelector('.start-mm');
@@ -1859,6 +1876,12 @@ Make it visually empty but present */
             const tr = td.closest('tr');
             if (tr) {
               const table = tr.closest('table');
+              const tbody = table && table.tBodies[0];
+              // Auto-lock for all rows except the first
+              if (tbody && tr !== tbody.firstElementChild) {
+                const lockCb = tr.querySelector('.lock-schedule-cb');
+                if (lockCb && !lockCb.checked) lockCb.checked = true;
+              }
               autoFillSchedule(table, tr);
             }
             input.blur();
@@ -2295,10 +2318,15 @@ Make it visually empty but present */
                 <td class="duration-col"><input type="number" class="duration" min="0" step="5" placeholder="min" value="${dur}"><div class="custom-duration-picker" style="display:none; position:fixed; left:0; top:0; z-index:10000; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px #0002; padding:0.5rem;"></div></td>
                 <td class="delete-col"><button class="row-delete-btn" title="Delete row">🗑️</button></td>
               `;
+              // Restore lock state
+              const lockCb = tr.querySelector('.lock-schedule-cb');
+              if (lockCb && typeof ev['X-LOCKED'] !== 'undefined') {
+                lockCb.checked = ev['X-LOCKED'] === '1';
+              }
               tbody.appendChild(tr);
             }
             wrapper.appendChild(table);
-            // Add day buttons
+            // Add table buttons
             const btns = document.createElement('div');
             btns.className = 'table-buttons';
             btns.innerHTML = `<div class="add-row-group">
@@ -2309,9 +2337,9 @@ Make it visually empty but present */
                 <button data-rows="4">+ 4 rows</button>
               </div>
             </div>
-            <button class="remove-table-btn" title="Delete day" style="background:#c00;">🗒️</button>
-            <button class="add-table-btn" title="Add day">🗒️</button>
-            <button class="export-ics-btn" title="Export day to Calendar" style="background:#1976d2; color:#fff;">📅</button>
+            <button class="remove-table-btn" title="Delete table" style="background:#c00;">🗒️</button>
+            <button class="add-table-btn" title="Add table">🗒️</button>
+            <button class="export-ics-btn" title="Export table to Calendar" style="background:#1976d2; color:#fff;">📅</button>
             <button class="doc-btn" title="Copy as text" style="background:#1976d2; color:#fff;">📄</button>`;
             wrapper.appendChild(btns);
             // Insert into planner
@@ -2327,6 +2355,7 @@ Make it visually empty but present */
             initAddRowDropdowns();
           }
         }
+        window.importIcs = importIcs;
       })();
 
       // --- Global drag&drop for schedule blocks ---
@@ -2441,7 +2470,7 @@ Make it visually empty but present */
               if (tableButtons && !removeBtn) {
                 removeBtn = document.createElement('button');
                 removeBtn.className = 'remove-table-btn';
-                removeBtn.title = 'Delete day';
+                removeBtn.title = 'Delete table';
                 removeBtn.style.background = '#c00';
                 removeBtn.textContent = '🗒️';
                 tableButtons.insertBefore(removeBtn, tableButtons.querySelector('.export-ics-btn'));
@@ -2648,6 +2677,258 @@ Make it visually empty but present */
           }).catch(err => {
               alert('Failed to copy. Please check browser permissions.');
           });
+        });
+      }
+
+      // --- Save and Restore buttons logic ---
+      const saveBtn = document.getElementById('save-btn');
+      const resetBtn = document.getElementById('reset-btn');
+      // Save to localStorage as .ics
+      if (saveBtn) {
+        saveBtn.addEventListener('click', function() {
+          let ics = 'BEGIN:VCALENDAR\nVERSION:2.0\nCALSCALE:GREGORIAN\n';
+          const blocks = Array.from(document.querySelectorAll('.schedule-block'));
+          blocks.forEach(block => {
+            const headerContainer = block.querySelector('.header-container');
+            let title = '';
+            let dateStr = '';
+            if (headerContainer) {
+              const titleEl = headerContainer.querySelector('.header-title');
+              const dateEl = headerContainer.querySelector('.header-date');
+              if (titleEl) title = titleEl.textContent.trim();
+              if (dateEl && dateEl.value) dateStr = dateEl.value;
+            }
+            if (!dateStr) {
+              const today = new Date();
+              const yyyy = today.getFullYear();
+              const mm = String(today.getMonth() + 1).padStart(2, '0');
+              const dd = String(today.getDate()).padStart(2, '0');
+              dateStr = `${yyyy}-${mm}-${dd}`;
+            }
+            const icsDateStr = dateStr.replace(/-/g, '');
+            block.querySelectorAll('tbody tr').forEach((tr) => {
+              if (tr.classList.contains('time-gap-row')) return;
+              const desc  = tr.querySelector('td.task-col')?.textContent.trim();
+              if (!desc) return;
+              const sh = tr.querySelector('.start-hh')?.value;
+              const sm = tr.querySelector('.start-mm')?.value;
+              const dur = tr.querySelector('.duration')?.value;
+              const autoEnd = tr.querySelector('.auto-end-time')?.textContent;
+              const locked = tr.querySelector('.lock-schedule-cb')?.checked ? 1 : 0;
+              // Timed event
+              if (sh && sm && dur && autoEnd && autoEnd !== '--:--') {
+                const [eh, em] = autoEnd.split(':');
+                const dtStart = `${icsDateStr}T${sh.padStart(2, '0')}${sm.padStart(2, '0')}00`;
+                const dtEnd   = `${icsDateStr}T${eh.padStart(2, '0')}${em.padStart(2, '0')}00`;
+                ics += 'BEGIN:VEVENT\n';
+                ics += `SUMMARY:${desc.replace(/\n/g, ' ')}\n`;
+                if (title) ics += `DESCRIPTION:${title}\n`;
+                ics += `DTSTART:${dtStart}\n`;
+                ics += `DTEND:${dtEnd}\n`;
+                ics += `X-LOCKED:${locked}\n`;
+                ics += 'END:VEVENT\n';
+              } else {
+                // All-day event
+                ics += 'BEGIN:VEVENT\n';
+                ics += `SUMMARY:${desc.replace(/\n/g, ' ')}\n`;
+                if (title) ics += `DESCRIPTION:${title}\n`;
+                ics += `DTSTART;VALUE=DATE:${icsDateStr}\n`;
+                ics += `X-LOCKED:${locked}\n`;
+                ics += 'END:VEVENT\n';
+              }
+            });
+          });
+          ics += 'END:VCALENDAR';
+          try {
+            localStorage.setItem('planner-ics', ics);
+            // Visual feedback
+            const originalText = saveBtn.textContent;
+            saveBtn.textContent = '✅';
+            setTimeout(() => { saveBtn.textContent = originalText; }, 1200);
+          } catch (err) {
+            alert('Failed to save to localStorage.');
+          }
+        });
+      }
+      // Restore from localStorage
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function() {
+          const ics = localStorage.getItem('planner-ics');
+          if (!ics) {
+            if (typeof showIcsError === 'function') {
+              showIcsError('No saved data found in localStorage.');
+            } else {
+              alert('No saved data found in localStorage.');
+            }
+            return;
+          }
+          try {
+            // Remove all current schedule blocks
+            document.querySelectorAll('.schedule-block').forEach(block => block.remove());
+            // Use existing importIcs function
+            if (typeof importIcs === 'function') {
+              importIcs(ics);
+              // After import, run autoFillSchedule for each table to add time gaps
+              setTimeout(() => {
+                document.querySelectorAll('.schedule-block table').forEach(table => {
+                  if (typeof autoFillSchedule === 'function') {
+                    autoFillSchedule(table);
+                  }
+                });
+              }, 0);
+            } else {
+              alert('Import function not found.');
+            }
+          } catch (err) {
+            if (typeof showIcsError === 'function') {
+              showIcsError('Failed to restore from localStorage.');
+            } else {
+              alert('Failed to restore from localStorage.');
+            }
+          }
+        });
+      }
+
+      // --- Auto-save to localStorage every 2 seconds ---
+      function autoSaveToLocalStorage() {
+        try {
+          let ics = 'BEGIN:VCALENDAR\nVERSION:2.0\nCALSCALE:GREGORIAN\n';
+          const blocks = Array.from(document.querySelectorAll('.schedule-block'));
+          blocks.forEach(block => {
+            const headerContainer = block.querySelector('.header-container');
+            let title = '';
+            let dateStr = '';
+            if (headerContainer) {
+              const titleEl = headerContainer.querySelector('.header-title');
+              const dateEl = headerContainer.querySelector('.header-date');
+              if (titleEl) title = titleEl.textContent.trim();
+              if (dateEl && dateEl.value) dateStr = dateEl.value;
+            }
+            if (!dateStr) {
+              const today = new Date();
+              const yyyy = today.getFullYear();
+              const mm = String(today.getMonth() + 1).padStart(2, '0');
+              const dd = String(today.getDate()).padStart(2, '0');
+              dateStr = `${yyyy}-${mm}-${dd}`;
+            }
+            const icsDateStr = dateStr.replace(/-/g, '');
+            block.querySelectorAll('tbody tr').forEach((tr) => {
+              if (tr.classList.contains('time-gap-row')) return;
+              const desc  = tr.querySelector('td.task-col')?.textContent.trim();
+              if (!desc) return;
+              const sh = tr.querySelector('.start-hh')?.value;
+              const sm = tr.querySelector('.start-mm')?.value;
+              const dur = tr.querySelector('.duration')?.value;
+              const autoEnd = tr.querySelector('.auto-end-time')?.textContent;
+              const locked = tr.querySelector('.lock-schedule-cb')?.checked ? 1 : 0;
+              // Timed event
+              if (sh && sm && dur && autoEnd && autoEnd !== '--:--') {
+                const [eh, em] = autoEnd.split(':');
+                const dtStart = `${icsDateStr}T${sh.padStart(2, '0')}${sm.padStart(2, '0')}00`;
+                const dtEnd   = `${icsDateStr}T${eh.padStart(2, '0')}${em.padStart(2, '0')}00`;
+                ics += 'BEGIN:VEVENT\n';
+                ics += `SUMMARY:${desc.replace(/\n/g, ' ')}\n`;
+                if (title) ics += `DESCRIPTION:${title}\n`;
+                ics += `DTSTART:${dtStart}\n`;
+                ics += `DTEND:${dtEnd}\n`;
+                ics += `X-LOCKED:${locked}\n`;
+                ics += 'END:VEVENT\n';
+              } else {
+                // All-day event
+                ics += 'BEGIN:VEVENT\n';
+                ics += `SUMMARY:${desc.replace(/\n/g, ' ')}\n`;
+                if (title) ics += `DESCRIPTION:${title}\n`;
+                ics += `DTSTART;VALUE=DATE:${icsDateStr}\n`;
+                ics += `X-LOCKED:${locked}\n`;
+                ics += 'END:VEVENT\n';
+              }
+            });
+          });
+          ics += 'END:VCALENDAR';
+          localStorage.setItem('planner-ics', ics);
+        } catch (err) {
+          if (typeof showIcsError === 'function') {
+            showIcsError('Failed to auto-save to localStorage.');
+          } else {
+            alert('Failed to auto-save to localStorage.');
+          }
+        }
+      }
+      let autoSaveIntervalId = null;
+      function startAutoSave() {
+        if (autoSaveIntervalId === null) {
+          autoSaveToLocalStorage(); // Immediate save on activation
+          autoSaveIntervalId = setInterval(autoSaveToLocalStorage, 2000);
+        }
+      }
+      function stopAutoSave() {
+        if (autoSaveIntervalId !== null) {
+          clearInterval(autoSaveIntervalId);
+          autoSaveIntervalId = null;
+        }
+      }
+      function handleVisibilityChange() {
+        if (document.visibilityState === 'visible') {
+          startAutoSave();
+        } else {
+          stopAutoSave();
+        }
+      }
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      // Start autosave with delay after page load and auto-load
+      setTimeout(() => {
+        if (document.visibilityState === 'visible') {
+          startAutoSave();
+        }
+      }, 1000);
+
+      // --- Auto-load from localStorage on page load ---
+      function autoLoadFromLocalStorage() {
+        try {
+          const ics = localStorage.getItem('planner-ics');
+          if (!ics) {
+            // No saved data, load empty planner
+            return;
+          }
+          // Check if ics contains any events (not just header)
+          if (!ics.includes('BEGIN:VEVENT')) {
+            // Empty calendar, load empty planner
+            return;
+          }
+          // Remove all current schedule blocks
+          document.querySelectorAll('.schedule-block').forEach(block => block.remove());
+          // Use existing importIcs function
+          if (typeof importIcs === 'function') {
+            importIcs(ics);
+            // After import, run autoFillSchedule for each table to add time gaps
+            setTimeout(() => {
+              document.querySelectorAll('.schedule-block table').forEach(table => {
+                if (typeof autoFillSchedule === 'function') {
+                  autoFillSchedule(table);
+                }
+              });
+            }, 0);
+          }
+        } catch (err) {
+          // Failed to load from localStorage, continue with empty planner
+          console.log('Failed to auto-load from localStorage:', err);
+        }
+      }
+      // Auto-load data first
+      autoLoadFromLocalStorage();
+
+      // --- Clean button logic ---
+      const cleanBtn = document.getElementById('clean-btn');
+      if (cleanBtn) {
+        cleanBtn.addEventListener('click', function() {
+          // Clear localStorage
+          try {
+            localStorage.removeItem('planner-ics');
+          } catch (err) {
+            console.log('Failed to clear localStorage:', err);
+          }
+          // Reload page
+          window.location.reload();
         });
       }
     });
