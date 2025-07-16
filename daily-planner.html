@@ -1023,14 +1023,26 @@ Make it visually empty but present */
             if (!dateVal || !titleEl) return;
 
             const currentTitle = titleEl.textContent.trim();
-            const isDefaultTitle = /^\d{2}\/\d{2} (Sun|Mon|Tue|Wed|Thu|Fri|Sat)$/.test(currentTitle);
+            // Days of week in full
+            const daysFull = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+            // Check if current title is a day of week
+            const isDayOfWeek = daysFull.includes(currentTitle);
 
-            if (isDefaultTitle || !currentTitle) {
-                const [yyyy, mm, dd] = dateVal.split('-');
+            if (isDayOfWeek) {
+                // If current title is a day of week, update to new day of week for selected date
                 const d = new Date(`${dateVal}T12:00:00`);
-                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                const day = days[d.getDay()];
-                titleEl.textContent = `${dd}/${mm} ${day}`;
+                const newDay = daysFull[d.getDay()];
+                titleEl.textContent = newDay;
+            } else {
+                // Old logic: if title is default format (e.g. 12/06 Mon), update to new format
+                const isDefaultTitle = /^\d{2}\/\d{2} (Sun|Mon|Tue|Wed|Thu|Fri|Sat)$/.test(currentTitle);
+                if (isDefaultTitle || !currentTitle) {
+                    const [yyyy, mm, dd] = dateVal.split('-');
+                    const d = new Date(`${dateVal}T12:00:00`);
+                    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                    const day = days[d.getDay()];
+                    titleEl.textContent = `${dd}/${mm} ${day}`;
+                }
             }
         }
       });
@@ -1327,6 +1339,9 @@ Make it visually empty but present */
         const tbody = table.tBodies[0];
         const proto = tbody.rows[0];
         const tr = proto.cloneNode(true);
+        // Remove all extra classes (except default)
+        tr.className = '';
+        tr.removeAttribute('style');
         // Clear content but not structure
         tr.querySelectorAll('td.task-col').forEach(td => td.textContent = '');
         tr.querySelectorAll('input').forEach(i => i.value = '');
@@ -1957,6 +1972,11 @@ Make it visually empty but present */
         
         let globalDragged = null;
         let globalPlaceholder = null;
+        // --- Auto-scroll variables ---
+        let autoScrollInterval = null;
+        let lastDragY = null;
+        const SCROLL_EDGE_SIZE = 60; // px from edge to start scrolling
+        const SCROLL_SPEED = 19; // px per frame (slower)
 
         document.addEventListener('dragstart', (e) => {
             const tr = e.target.closest('tbody tr');
@@ -1987,6 +2007,11 @@ Make it visually empty but present */
             }
             globalDragged = null;
             globalPlaceholder = null;
+            // --- Stop auto-scroll ---
+            if (autoScrollInterval) {
+              clearInterval(autoScrollInterval);
+              autoScrollInterval = null;
+            }
         });
 
         document.addEventListener('dragover', e => {
@@ -1994,6 +2019,22 @@ Make it visually empty but present */
             
             if (!globalDragged) return;
             e.dataTransfer.dropEffect = 'move';
+
+            // --- Auto-scroll logic ---
+            lastDragY = e.clientY;
+            if (!autoScrollInterval) {
+              autoScrollInterval = setInterval(() => {
+                if (lastDragY === null) return;
+                const winHeight = window.innerHeight;
+                if (lastDragY < SCROLL_EDGE_SIZE) {
+                  // Scroll up
+                  window.scrollBy(0, -SCROLL_SPEED);
+                } else if (lastDragY > winHeight - SCROLL_EDGE_SIZE) {
+                  // Scroll down
+                  window.scrollBy(0, SCROLL_SPEED);
+                }
+              }, 16); // ~60fps
+            }
 
             const tbody = e.target.closest('.table-wrapper table tbody');
             if (!tbody) return;
@@ -2027,6 +2068,15 @@ Make it visually empty but present */
 
             // Save reference to the source table before moving the row
             const sourceTable = globalDragged.closest('table');
+            const sourceTbody = sourceTable && sourceTable.tBodies[0];
+            // Check if source table had only one row (not counting time-gap-row)
+            let onlyRow = false;
+            if (sourceTbody) {
+              const regularRows = Array.from(sourceTbody.rows).filter(row => !row.classList.contains('time-gap-row') && row !== globalDragged);
+              if (regularRows.length === 0) {
+                onlyRow = true;
+              }
+            }
 
             const tbody = globalPlaceholder.parentElement;
             const table = tbody.closest('table');
@@ -2038,6 +2088,11 @@ Make it visually empty but present */
             };
             const isDroppingAtTop = globalPlaceholder.previousElementSibling === null;
             const originalFirstRow = Array.from(tbody.children).find(row => row !== globalDragged && !row.classList.contains('placeholder'));
+
+            // --- If only row in source table, add a new empty row before removing dragged row ---
+            if (onlyRow && sourceTable !== table) {
+              addRow(sourceTable);
+            }
             
             globalPlaceholder.parentElement.insertBefore(globalDragged, globalPlaceholder);
             
@@ -2064,6 +2119,12 @@ Make it visually empty but present */
             if (sourceTable && sourceTable !== table) {
                 autoFillSchedule(sourceTable);
             }
+            // --- Stop auto-scroll ---
+            if (autoScrollInterval) {
+              clearInterval(autoScrollInterval);
+              autoScrollInterval = null;
+            }
+            lastDragY = null;
         });
       }
 
