@@ -908,33 +908,38 @@ Make it visually empty but present */
     </div>
     <div id="info-panel">
       <button id="close-info-btn" title="Close">&times;</button>
-      <p>Everything you do with this planner is processed locally in your browser. <br>Your last session will be cached are restored when you refresh the page. To clean the cache, click 🧹.</p>
-      <h3>🎯 Purpose of the Planner</h3>
-      <p>Calculate how many tasks you can fit into a day and make changes to the schedule with a simple drag and drop.</p>
-      <h3>🚀 Get Started</h3>
-      <ol>
-        <li>Add task descriptions in <b>TASK</b>.</li>
-        <li>Set the estimated time in <b>DURATION</b>.</li>
-        <li>Fill in the top row of <b>SCHEDULE</b> — the planner auto-generates your schedule.</li>
-      </ol>
-  
-      <h3>⚙️ Adjust Your Schedule</h3>
-      <ul>
-        <li>Change the first <b>SCHEDULE</b> cell to set a new starting time.</li>
-        <li>Drag rows to reorder or move tasks between days.</li>
-        <li>Update <b>DURATION</b> — your schedule updates instantly.</li>
-        <li>Lock fixed-time tasks (e.g. meetings) with the <b>🔒 checkbox</b> — their <b>SCHEDULE</b> won't be changed.</li>
-      </ul>
+      <p>Everything you do with this planner is processed locally in your browser and isn't stored anywhere else.
+        <h3>🚀 How to use</h3>
+        <ol>
+          <li>Add task descriptions in <b>TASK</b>.</li>
+          <li>Set their estimated time in <b>DURATION</b>.</li>
+          <li>Fill in the top row of <b>SCHEDULE</b> — the planner auto-generates your schedule.</li>
+          <li><p>Make changes to the schedule: </p>
+            <p>- Use drag and drop to move tasks – between days as well</p>
+            <p>- Change the first <b>SCHEDULE</b> cell to set a new starting time</p>
+            <p>- Change <b>DURATION</b> — your schedule updates instantly</p>
+            <p>- Lock fixed-time tasks (e.g. meetings) with the <b>🔒 checkbox</b> — their <b>SCHEDULE</b> won't be changed</p>
+          </li>
+          <li>Continue where you left off the last time – your last session will be cached are restored when you refresh the page. To clean the planner, click 🧹.</p>
+        </ol>
   
       <h3>🟢 Buttons Explained</h3>
-      <ul>
+      <p>Day buttons:</p>
+      
         <li><b>➕</b> — Add a row</li>
-        <li><b>🗑️</b> — Delete the row (hover a row to see it)</li>
+        <li><b>🗑️</b> — Delete the row (hover over a row to see the button)</li>
         <li><b>🗒️</b> — Add a new day</li>
-        <li><b>📅</b> — Export as an .ics file (open it to add your schedule to Calendar)</li>
-        <li><b>📄</b> — Copy as text (paste into Notion or docs)</li>
+        <li><b>📅</b> — Export the day as an .ics file (open it to add your schedule to Calendar)</li>
+        <li><b>📄</b> — Copy the day as text table (paste into Notion or other docs)</li>
       </ul>
-  
+      <p>Left menu:</p>
+      <ul>
+        <li><b>i</b> — Call the instruction</li>
+        <li><b>📅</b> — Export all days as an .ics file (open it to add your schedule to Calendar)</li>
+        <li><b>📄</b> — Copy all days as text table (paste into Notion or docs)</li>
+        <li><b>🧹</b> — Clean the planner (deletes all days and creates a new clean schedule for today)</li>
+      </ul>
+
       <h3>⬇️ Import</h3>
         <p>The days from an exported .ics file could be restored. Simply drag the downloaded .ics file onto the page.</p>
       <h3>ℹ️ Notes</h3>
@@ -970,7 +975,11 @@ Make it visually empty but present */
         function placeInfoPanel() {
           const firstBlock = plannerContainer.querySelector('.schedule-block');
           if (firstBlock) {
-            plannerContainer.insertBefore(infoPanel, firstBlock);
+            if (firstBlock.nextSibling) {
+              plannerContainer.insertBefore(infoPanel, firstBlock.nextSibling);
+            } else {
+              plannerContainer.appendChild(infoPanel);
+            }
           } else {
             plannerContainer.appendChild(infoPanel);
           }
