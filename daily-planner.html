@@ -1237,22 +1237,13 @@ Make it visually empty but present */
           const titleEl = cloneBlock.querySelector('.header-title');
           const dateEl = cloneBlock.querySelector('.header-date');
 
-          // Set header to +1 day ahead of previous
-          let prevDate;
-          const prevDateEl = scheduleBlock.querySelector('.header-date');
-          if (prevDateEl && prevDateEl.value) {
-            prevDate = new Date(`${prevDateEl.value}T12:00:00`);
-            prevDate.setDate(prevDate.getDate() + 1);
-          } else {
-            prevDate = new Date();
-            prevDate.setDate(prevDate.getDate() + 1);
-          }
-          
-          const dd = String(prevDate.getDate()).padStart(2, '0');
-          const mm = String(prevDate.getMonth() + 1).padStart(2, '0');
-          const yyyy = prevDate.getFullYear();
+          // ✅ Use current date instead of +1 day
+          const now = new Date();
+          const dd = String(now.getDate()).padStart(2, '0');
+          const mm = String(now.getMonth() + 1).padStart(2, '0');
+          const yyyy = now.getFullYear();
           const daysFull = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-          const dayFull = daysFull[prevDate.getDay()];
+          const dayFull = daysFull[now.getDay()];
           
           if (titleEl) titleEl.textContent = dayFull;
           if (dateEl) dateEl.value = `${yyyy}-${mm}-${dd}`;
@@ -1301,11 +1292,8 @@ Make it visually empty but present */
           }
           adjustTableRowsToFive(cloneTable);
 
-          if (scheduleBlock.nextElementSibling) {
-            container.insertBefore(cloneBlock, scheduleBlock.nextElementSibling);
-          } else {
-            container.appendChild(cloneBlock);
-          }
+          // ✅ Always insert the new day *below* the clicked one
+          container.insertBefore(cloneBlock, scheduleBlock.nextSibling);
           cloneBlock.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
           initTable(cloneBlock.querySelector('table'));
