@@ -2403,7 +2403,7 @@ Make it visually empty but present */
             // Insert into planner
             scheduleBlock.appendChild(headerContainer);
             scheduleBlock.appendChild(wrapper);
-            container.appendChild(scheduleBlock);
+            container.insertBefore(scheduleBlock, container.querySelector('.schedule-block'));
             // Re-init logic
             // Do not call initTable, as it adds an extra empty row.
             // Instead, just attach handlers to imported rows.
